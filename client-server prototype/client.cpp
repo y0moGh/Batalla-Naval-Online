@@ -12,6 +12,8 @@
 
 using namespace std;
 
+bool turno=false;
+
 void start_client() {
     WSADATA wsaData;
     // Inicializa la biblioteca Winsock
@@ -44,16 +46,19 @@ void start_client() {
     }
 
     while (true) {
-        // Solicita al usuario que ingrese un mensaje
-        cout << "[+] Send a message: ";
-        string message;
-        getline(cin, message); // Lee el mensaje de la entrada estándar
+        if(turno){
+            // Solicita al usuario que ingrese un mensaje
+            cout << "[+] Send a message: ";
+            string message;
+            getline(cin, message); // Lee el mensaje de la entrada estándar
 
-        // Envía el mensaje al servidor
-        int send_result = send(client_socket, message.c_str(), message.size(), 0);
-        if (send_result == SOCKET_ERROR) {
-            cerr << "Send failed: " << WSAGetLastError() << endl;
-            break;
+            // Envía el mensaje al servidor
+            int send_result = send(client_socket, message.c_str(), message.size(), 0);
+            if (send_result == SOCKET_ERROR) {
+                cerr << "Send failed: " << WSAGetLastError() << endl;
+                break;
+            }
+            turno=false;
         }
 
         // Prepara un búfer para recibir la respuesta del servidor
@@ -66,6 +71,7 @@ void start_client() {
 
         // Muestra el mensaje recibido del servidor
         cout << "[+] Message received from server: " << string(buffer, bytes_received) << endl;
+        turno=true;
     }
 
     // Cierra el socket del cliente y limpia la biblioteca Winsock

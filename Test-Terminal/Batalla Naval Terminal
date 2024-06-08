@@ -1,0 +1,208 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+void dibujar(string matriz[9][9]) {
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            cout << matriz[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+
+
+void checkear(int fila,int columna,string matriz[9][9]){
+
+if(matriz[fila][columna] == "B")
+
+cout<<"Le acertaste a un barco"<<endl;
+    
+    
+    
+}
+
+void disparar(string columna[], string fila[], string matriz[9][9]) {
+    string disparo;
+    cout << "Ingrese la fila y columna a la que va a disparar: ";
+    cin >> disparo;
+
+    if (disparo.length() != 2) {
+        cout << "No ingresaste 1 caracter y letra, vuelva a intentarlo" << endl;
+        disparar(columna, fila, matriz);
+        return;
+    }
+
+    char row = disparo[0];
+    char col = disparo[1];
+
+    bool validRow = false;
+    bool validCol = false;
+    for (int i = 0; i < 8; i++) {
+        if (row == fila[i][0]) {
+            validRow = true;
+        }
+        if (col == columna[i][0]) {
+            validCol = true;
+        }
+    }
+
+    if (!validRow) {
+        cout << "No se encontro la fila" << endl;
+        disparar(columna, fila, matriz);
+        return;
+    }
+
+    if (!validCol) {
+        cout << "No se encontro la columna" << endl;
+        disparar(columna, fila, matriz);
+        return;
+    }
+
+    int rowIndex = row - 'A' + 1;
+    int colIndex = col - '1' + 1;
+    matriz[rowIndex][colIndex] = "X";
+
+    cout << "Disparo registrado en la fila " << row << " y columna " << col << endl;
+    checkear(rowIndex,colIndex,matriz);
+    dibujar(matriz);
+}
+
+void poner_barco(string matriz[9][9], string barco[], int barcoSize, string fila[], string columna[]) {
+    cout << "El barco que vas a poner ocupa " << barcoSize << " casillas" << endl;
+
+    bool rotar; int num;
+    cout << "Quiere rotar el barco verticalmente? (1 si, 0 no): ";
+    cin >>num;
+    if(num == 0 || num == 1)
+    rotar = num;
+
+    string disparo;
+    cout << "Ingrese la fila y columna en la que va a poner el inicio del barco: ";
+    cin >> disparo;
+
+    if (disparo.length() != 2) {
+        cout << "No ingresaste 1 caracter y letra, vuelva a intentarlo" << endl;
+        poner_barco(matriz, barco, barcoSize, fila, columna);
+        return;
+    }
+
+    char row = disparo[0];
+    char col = disparo[1];
+
+    bool validRow = false;
+    bool validCol = false;
+    int rowIndex, colIndex;
+    for (int i = 0; i < 8; i++) {
+        if (row == fila[i][0]) {
+            validRow = true;
+            rowIndex = i + 1;
+        }
+        if (col == columna[i][0]) {
+            validCol = true;
+            colIndex = i + 1;
+        }
+    }
+
+    if (!validRow || !validCol) {
+        cout << "Fila o columna no válidas, vuelva a intentarlo" << endl;
+        poner_barco(matriz, barco, barcoSize, fila, columna);
+        return;
+    }
+
+    if ((rowIndex + barcoSize > 9 && !rotar) || (colIndex + barcoSize > 9 && rotar)) {
+        cout << "El barco no cabe en esa posicion, vuelva a intentarlo" << endl;
+        poner_barco(matriz, barco, barcoSize, fila, columna);
+        return;
+    }
+
+
+    for (int i = 0; i < barcoSize; i++) {
+        if (rotar) {
+            matriz[rowIndex + i][colIndex] = barco[i];
+        } else {
+            matriz[rowIndex][colIndex + i] = barco[i];
+        }
+    }
+
+    cout << "Barco colocado en la fila " << row << " y columna " << col << endl;
+    dibujar(matriz);
+}
+
+void armar_campo(string matriz[9][9], string fila[], string columna[]) {
+    string destructor[] = {"B", "B"};
+    string submarino[] = {"B", "B", "B"};
+    string crucero[] = {"B", "B", "B"};
+    string acorazado[] = {"B", "B", "B", "B"};
+    string carrier[] = {"B", "B", "B", "B", "B"};
+
+    int barc;
+    int guardar[5];
+    int camt = 5;
+
+    while (camt != 0) {
+        cout << "Vamos a poner nuestros barcos en la matriz, ingrese un numero para mover un barco (1 destructor, 2 submarino, 3 crucero, 4 acorazado, 5 carrier)" << endl;
+        cin >> barc;
+        
+        bool posicionado = false;
+        for(int i=0;i<5;i++){
+            if(barc == guardar[i]){
+            cout<<"Ya posicionaste tu barco"<<endl;
+            posicionado = true;
+            break;
+            }
+        }
+        
+        if(posicionado)
+        continue;
+        switch (barc) {
+            case 1: 
+                poner_barco(matriz, destructor, 2, fila, columna);
+                break;
+            case 2: 
+                poner_barco(matriz, submarino, 3, fila, columna);
+                break;
+            case 3: 
+                poner_barco(matriz, crucero, 3, fila, columna);
+                break;
+            case 4: 
+                poner_barco(matriz, acorazado, 4, fila, columna);
+                break;
+            case 5: 
+                poner_barco(matriz, carrier, 5, fila, columna);
+                break;
+            default:
+                cout << "Opción no válida" << endl;
+                continue;
+        }
+        guardar[5-camt] = barc;
+        camt--;
+    }
+}
+
+int main() {
+    string fila[] = {"A", "B", "C", "D", "E", "F", "G", "H"};
+    string columna[] = {"1", "2", "3", "4", "5", "6", "7", "8"};
+    string matriz[9][9];
+
+    cout << "Hola, estas jugando a batalla naval" << endl;
+
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            matriz[i][j] = " ";
+        }
+    }
+
+    for (int i = 1; i < 9; i++) {
+        matriz[0][i] = columna[i-1];
+    }
+
+    for (int j = 1; j < 9; j++) {
+        matriz[j][0] = fila[j-1];
+    }
+
+    dibujar(matriz);
+    armar_campo(matriz, fila, columna);
+    disparar(columna, fila, matriz);
+    return 0;
+}

@@ -3,10 +3,10 @@
 #include <string>
 using namespace std;
 
-void dibujar(string matriz[9][9]) {
+void dibujar(string jugador[9][9]) {
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 9; j++) {
-            cout << matriz[i][j] << " ";
+            cout << jugador[i][j] << " ";
         }
         cout << endl;
     }
@@ -14,10 +14,10 @@ void dibujar(string matriz[9][9]) {
 }
 
 
-int checkear(int fila, int columna, string matriz[9][9], int& vidas) {
-    if (matriz[fila][columna] == "B") {
+int checkear(int fila, int columna, string jugador[9][9], int& vidas) {
+    if (jugador[fila][columna] == "B") {
         cout << "Le acertaste a un barco" << endl;
-        matriz[fila][columna] = "X";
+        jugador[fila][columna] = "X";
         vidas--;
         if (vidas == 0) {
             cout << "Te moriste" << endl;
@@ -31,7 +31,7 @@ int checkear(int fila, int columna, string matriz[9][9], int& vidas) {
     }
 }
 
-void disparar(string columna[], string fila[], string matriz[9][9], int& vidas) {
+void disparar(string columna[], string fila[], string jugador[9][9], int& vidas) {
     string disparo;
 
     while (vidas > 0) {
@@ -67,10 +67,10 @@ void disparar(string columna[], string fila[], string matriz[9][9], int& vidas) 
 
         cout << "Disparo registrado en la fila " << row << " y columna " << col << endl;
 
-        int result = checkear(rowIndex, colIndex, matriz, vidas);
+        int result = checkear(rowIndex, colIndex, jugador, vidas);
         cout << "Vidas restantes: " << vidas << endl;
 
-        dibujar(matriz);
+        dibujar(jugador);
 
         if (result == 0) {
             break;
@@ -81,7 +81,7 @@ void disparar(string columna[], string fila[], string matriz[9][9], int& vidas) 
 
 
 
-void poner_barco(string matriz[9][9], string barco[], int barcoSize, string fila[], string columna[]) {
+void poner_barco(string jugador[9][9], string barco[], int barcoSize, string fila[], string columna[]) {
     cout << "El barco que vas a poner ocupa " << barcoSize << " casillas" << endl;
 
     bool rotar; int num;
@@ -96,7 +96,7 @@ void poner_barco(string matriz[9][9], string barco[], int barcoSize, string fila
 
     if (disparo.length() != 2) {
         cout << "No ingresaste 1 caracter y letra, vuelva a intentarlo" << endl;
-        poner_barco(matriz, barco, barcoSize, fila, columna);
+        poner_barco(jugador, barco, barcoSize, fila, columna);
         return;
     }
 
@@ -119,30 +119,30 @@ void poner_barco(string matriz[9][9], string barco[], int barcoSize, string fila
 
     if (!validRow || !validCol) {
         cout << "Fila o columna no válidas, vuelva a intentarlo" << endl;
-        poner_barco(matriz, barco, barcoSize, fila, columna);
+        poner_barco(jugador, barco, barcoSize, fila, columna);
         return;
     }
 
     if ((rowIndex + barcoSize >= 9 && !rotar) || (colIndex + barcoSize >= 9 && rotar)) {
         cout << "El barco no cabe en esa posicion, vuelva a intentarlo" << endl;
-        poner_barco(matriz, barco, barcoSize, fila, columna);
+        poner_barco(jugador, barco, barcoSize, fila, columna);
         return;
     }
 
 
     for (int i = 0; i < barcoSize; i++) {
         if (rotar) {
-            matriz[rowIndex + i][colIndex] = barco[i];
+            jugador[rowIndex + i][colIndex] = barco[i];
         } else {
-            matriz[rowIndex][colIndex + i] = barco[i];
+            jugador[rowIndex][colIndex + i] = barco[i];
         }
     }
 
     cout << "Barco colocado en la fila " << row << " y columna " << col << endl;
-    dibujar(matriz);
+    dibujar(jugador);
 }
 
-void armar_campo(string matriz[9][9], string fila[], string columna[]) {
+void armar_campo(string jugador[9][9], string fila[], string columna[]) {
     string destructor[] = {"B", "B"};
     string submarino[] = {"B", "B", "B"};
     string crucero[] = {"B", "B", "B"};
@@ -155,7 +155,7 @@ void armar_campo(string matriz[9][9], string fila[], string columna[]) {
     int camt = 1;
 
     while (camt != 0) {
-        cout << "Vamos a poner nuestros barcos en la matriz, ingrese un numero para mover un barco (1 destructor, 2 submarino, 3 crucero, 4 acorazado, 5 carrier)" << endl;
+        cout << "Vamos a poner nuestros barcos en la jugador, ingrese un numero para mover un barco (1 destructor, 2 submarino, 3 crucero, 4 acorazado, 5 carrier)" << endl;
         cin >> barc;
         
         bool posicionado = false;
@@ -171,19 +171,19 @@ void armar_campo(string matriz[9][9], string fila[], string columna[]) {
         continue;
         switch (barc) {
             case 1: 
-                poner_barco(matriz, destructor, 2, fila, columna);
+                poner_barco(jugador, destructor, 2, fila, columna);
                 break;
             case 2: 
-                poner_barco(matriz, submarino, 3, fila, columna);
+                poner_barco(jugador, submarino, 3, fila, columna);
                 break;
             case 3: 
-                poner_barco(matriz, crucero, 3, fila, columna);
+                poner_barco(jugador, crucero, 3, fila, columna);
                 break;
             case 4: 
-                poner_barco(matriz, acorazado, 4, fila, columna);
+                poner_barco(jugador, acorazado, 4, fila, columna);
                 break;
             case 5: 
-                poner_barco(matriz, carrier, 5, fila, columna);
+                poner_barco(jugador, carrier, 5, fila, columna);
                 break;
             default:
                 cout << "Opción no válida" << endl;
@@ -201,26 +201,27 @@ int main() {
 	int vidas = 2;
     string fila[] = {"A", "B", "C", "D", "E", "F", "G", "H"};
     string columna[] = {"1", "2", "3", "4", "5", "6", "7", "8"};
-    string matriz[9][9];
+    string jugador[9][9];
+    string jugador2[]
 
     cout << "Hola, estas jugando a batalla naval" << endl;
 
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 9; j++) {
-            matriz[i][j] = " ";
+            jugador[i][j] = " ";
         }
     }
 
     for (int i = 1; i < 9; i++) {
-        matriz[0][i] = columna[i-1];
+        jugador[0][i] = columna[i-1];
     }
 
     for (int j = 1; j < 9; j++) {
-        matriz[j][0] = fila[j-1];
+        jugador[j][0] = fila[j-1];
     }
 
-    dibujar(matriz);
-    armar_campo(matriz, fila, columna);
-    disparar(columna, fila, matriz,vidas);
+    dibujar(jugador);
+    armar_campo(jugador, fila, columna);
+    disparar(columna, fila, jugador,vidas);
     return 0;
 }

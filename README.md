@@ -4,3 +4,10 @@
 ### Client-Server Compilation Links
 - **Linux Server:** -pthread
 - **Windows Client:** -lws2_32
+
+### SFML
+#### Linkers
+-lsfml-audio
+-lsfml-graphics
+-lsfml-window
+-lsfml-system

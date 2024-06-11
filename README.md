@@ -5,7 +5,7 @@
 - **Linux Server:** -pthread
 - **Windows Client:** -lws2_32
 
-### SFML
+### SFML Configuration
 #### Linkers
 - -lsfml-audio
 - -lsfml-graphics

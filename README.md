@@ -7,7 +7,7 @@
 
 ### SFML
 #### Linkers
--lsfml-audio
--lsfml-graphics
--lsfml-window
--lsfml-system
+- -lsfml-audio
+- -lsfml-graphics
+- -lsfml-window
+- -lsfml-system

@@ -120,7 +120,7 @@ int main() {
 
     vector<thread> client_threads; // Vector para almacenar los hilos de clientes
 
-    while (true) {
+    while (client_sockets.size() < 1) {
         sockaddr_in client_addr;            // Dirección del cliente
         socklen_t client_addr_len = sizeof(client_addr); // Tamaño de la dirección del cliente
         // Acepta una conexión entrante

@@ -7,18 +7,18 @@ struct Jugador  {
     string fila[8] = {"A", "B", "C", "D", "E", "F", "G", "H"};
     string columna[8] = {"1", "2", "3", "4", "5", "6", "7", "8"};
     string matriz[9][9];
-    bool turno = false;
+
 };
 
 void dibujar(string jugador[9][9],string jugador2[9][9]) {
-	cout<<"Jugador 1:"<<endl;
+	cout<<endl<<"Jugador 1:"<<endl;
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 9; j++) {
             cout << jugador[i][j] << " ";
         }
         cout << endl;
     }
-    cout<<"Jugador 2:"<<endl;
+    cout<<endl<<"Jugador 2:"<<endl;
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 9; j++) {
             cout << jugador2[i][j] << " ";
@@ -80,11 +80,11 @@ void disparar(string columna[], string fila[], string jugador[9][9], int& vidas,
         int colIndex = col - '1' + 1;
 
         cout << "Disparo registrado en la fila " << row << " y columna " << col << endl;
-        conf =1;
 
         int result = checkear(rowIndex, colIndex, jugador, vidas);
         cout << "Vidas restantes: " << vidas << endl;
         turno = !turno;
+        break;
     
 }
 
@@ -92,7 +92,7 @@ void disparar(string columna[], string fila[], string jugador[9][9], int& vidas,
 
 void poner_barco(string jugador[9][9], string barco[], int barcoSize, string fila[], string columna[]) {
     cout << "El barco que vas a poner ocupa " << barcoSize << " casillas" << endl;
-
+	string vacio[9][9];
     bool rotar; int num;
     cout << "Quiere rotar el barco verticalmente? (1 si, 0 no): ";
     cin >>num;
@@ -148,7 +148,7 @@ void poner_barco(string jugador[9][9], string barco[], int barcoSize, string fil
     }
 
     cout << "Barco colocado en la fila " << row << " y columna " << col << endl;
-    dibujar(jugador,jugador);
+    dibujar(jugador,vacio);
 }
 
 void armar_campo(string jugador[9][9], string fila[], string columna[]) {
@@ -204,26 +204,29 @@ void armar_campo(string jugador[9][9], string fila[], string columna[]) {
 
 
  void  turno(Jugador& jugador1, Jugador& jugador2 ){
- 	int turno=0;
+ 	bool turno = true;
+ 	int turnos=0;
+ 	
+ 	armar_campo(jugador1.matriz, jugador1.fila, jugador1.columna);
+ 	armar_campo(jugador2.matriz, jugador2.fila, jugador2.columna);
+
+ 	
  	while(jugador1.vidas !=0 || jugador2.vidas !=0){
  		turno++;
  		cout<<"Estamos en el turno: "<<turno<<endl;
- 		cout<<"El jugador es"<<  jugador1.turno ? jugador1 : jugador2;
+ 		cout<<"El jugador es "<<  turno? jugador1 : jugador2;
  		
- 	if(jugador1.turno){
+ 	if(turno){
  	dibujar(jugador1.matriz,jugador2.matriz);
- 	if(turno ==1){
-    armar_campo(jugador1.matriz, jugador1.fila, jugador1.columna);}
-    disparar(jugador1.columna, jugador1.fila, jugador1.matriz, jugador1.vidas,jugador1.turno);	
+    
+    disparar(jugador2.columna, jugador2.fila, jugador2.matriz, jugador2.vidas,turno);	
  	}
  	else{
  	dibujar(jugador2.matriz,jugador2.matriz);
-   	if(turno ==1){
-    armar_campo(jugador2.matriz, jugador2.fila, jugador2.columna);}
-    disparar(jugador2.columna, jugador2.fila, jugador2.matriz, jugador2.vidas,jugador2.turno);	
+    disparar(jugador1.columna, jugador1.fila, jugador1.matriz, jugador1.vidas,turno);	
 	 }
  		
- 		
+ 	 turno = !turno;
 	 }
  	
  	
@@ -233,7 +236,6 @@ void armar_campo(string jugador[9][9], string fila[], string columna[]) {
 int main() {
     Jugador jugador1;
     jugador1.vidas = 2;
-    jugador1.turno = true;
     Jugador jugador2;
       jugador2.vidas = 2;
 

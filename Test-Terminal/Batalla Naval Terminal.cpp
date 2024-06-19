@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <string>
 using namespace std;
@@ -145,7 +144,7 @@ void poner_barco(string jugador[9][9], string barco[], int barcoSize, string fil
         return;
     }
 
-    if ((indiceF + barcoSize >= 9 && rotar) || (indiceC + barcoSize >= 9 && !rotar)) {
+    if ((indiceF + barcoSize > 9 && rotar) || (indiceC + barcoSize > 9 && !rotar)) {
         cout << "El barco no cabe en esa posicion, vuelva a intentarlo" << endl;
         poner_barco(jugador, barco, barcoSize, fila, columna);
         return;

@@ -57,7 +57,7 @@ int checkear(int fila, int columna, string jugador[9][9], string disparos[9][9],
 }
 
 void disparar(string columna[], string fila[], string jugador[9][9], string disparos[9][9], int& vidas, bool turno) {
-    string disparo[2];//String de 2 espacios para la fila y columna
+    string disparo;//String de 2 espacios para la fila y columna
     cout << "Ingrese la fila y columna a la que va a disparar: ";
     cin >> disparo;
 
@@ -74,7 +74,7 @@ void disparar(string columna[], string fila[], string jugador[9][9], string disp
     bool colValida = false;
     int indiceF = -1, indiceC = -1;//Comprobacion para ver si que lo ingresaste esta dentro del rango de la matriz
     for (int i = 0; i < 8; i++) {
-        if (row == fila[i][0]) {
+        if (fil == fila[i][0]) {
             filaValida = true;
             indiceF = i + 1;
         }
@@ -90,7 +90,7 @@ void disparar(string columna[], string fila[], string jugador[9][9], string disp
         return;
     }
 
-    cout << "Disparo registrado en la fila " << row << " y columna " << col << endl;
+    cout << "Disparo registrado en la fila " << fil << " y columna " << col << endl;
     checkear(indiceF, indiceC, jugador, disparos, vidas);//Revisar si el disparo
     cout << "Vidas restantes del jugador: "<<turno<<"  "<< vidas << endl;
 }

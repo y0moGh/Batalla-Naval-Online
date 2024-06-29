@@ -27,10 +27,10 @@ string yellow = "\033[38;5;226m";
 // Variables globales
 vector<string> letras = {"A", "B", "C", "D", "E", "F", "G", "H", "I"};
 vector<int> boats_size = {2, 3, 3, 4, 5}; //Tamaño de los barcos en numeros
-string jugador2_vida = "3";
+string jugador2_vida = "17";
 
 struct Jugador {
-    int vidas = 3;
+    int vidas = 17;
     vector<int> position = {4, 4};
     vector<vector<string>> board = vector<vector<string>>(9, vector<string>(9, " "));
     vector<vector<string>> shots_board = vector<vector<string>>(9, vector<string>(9, " "));
@@ -145,7 +145,8 @@ void print_board(vector<vector<string>> board, string color){
 void selection_stage(Jugador& jugador) {
     bool vertical = false;
     bool selecting;
-
+ cout<<"Estas jugando battalla naval"<<endl;
+ cout<<"Para posicionar sus barcos use W,A,S,D para moverlos. R para rotarlos en 90 grados y E para asignar su posicion final"<<endl;
     for (int i = 0; i < boats_size.size(); i++) {
         selecting = true;
         while (selecting) {
@@ -297,7 +298,7 @@ void playing(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData) {
     vector<string> player2_shot = {"0", "0"};
 
     // In game
-    while (true) {
+    while (jugador.vidas != 0 && jugador2_vida != "0") {
     	
         // Turno del jugador
         if (turno) {
@@ -339,6 +340,11 @@ void playing(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData) {
 
         turno = true;
     }
+	if (jugador.vidas == 0) {
+            cout << "Perdiste la partida" << endl;
+        } else {
+            cout << "Ganaste la partida" << endl;
+        }
 }
 
 void start_client(Jugador& jugador) {
@@ -386,6 +392,7 @@ void start_client(Jugador& jugador) {
     // Cierra el socket del cliente y limpia la biblioteca Winsock
     closesocket(client_socket);
     WSACleanup();
+    cout << "[INFO] Conexión cerrada con el servidor." << endl;
 }
 
 int main() {

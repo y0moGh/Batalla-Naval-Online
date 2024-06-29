@@ -4,6 +4,7 @@
 #include <ws2tcpip.h>
 #include <vector>
 #include <conio.h>
+#include <ctime>
 
 // Enlaza la biblioteca Winsock 2.2 para permitir el uso de funciones de red
 #pragma comment(lib, "ws2_32.lib")
@@ -35,6 +36,10 @@ struct Jugador {
     vector<vector<string>> board = vector<vector<string>>(9, vector<string>(9, " "));
     vector<vector<string>> shots_board = vector<vector<string>>(9, vector<string>(9, " "));
 };
+
+void delay(int secs) {
+  for(int i = (time(NULL) + secs); time(NULL) != i; time(NULL));
+}
 
 void load_board(Jugador& jugador) {
     for (int i = 0; i < 9; i++) {
@@ -101,6 +106,99 @@ bool put_boat(bool vertical, int n, Jugador& jugador) {
     return true; // Salió todo bien
 }
 
+void loggin() {
+    string nombre, contrasena;
+    char opcion;
+
+    while (true) {
+        cout << "[i] Ya tienes una cuenta? (s/n) ";
+        cin >> opcion;
+
+        if (opcion == 's') {
+            // hay que preguntar a la base de datos si el nombre y la contrasena son correctos
+            cout << "[i] Ingrese su nombre de usuario: "; cin >> nombre;
+            cout << "[i] Ingrese su contraseña: "; cin >> contrasena;
+            break;
+        } else if (opcion == 'n') {
+            // hay que preguntar a la base de datos si el nombre ya existe
+            cout << "[i] Ingrese su nombre de usuario: "; cin >> nombre;
+            cout << "[i] Ingrese su contraseña: "; cin >> contrasena;
+            break;
+        } else {
+            cout << red << "[!] Error, opcion inexistente" << endl << "[!] Porfavor ingrese una opcion existente (s/n)" << reset << endl;
+        }
+    }
+}
+
+void print_APB() {
+    cout << yellow << " _________________________________________" << endl
+                   << "|                  APB                    |" << endl
+                   << "|_________________________________________|" << endl
+                   << "|    Movimientos:                         |" << endl
+                   << "|        -w: moverse hacia arriba         |" << endl
+                   << "|        -a: moverse hacia la izquierda   |" << endl
+                   << "|        -s: moverse hacia abajo          |" << endl
+                   << "|        -d: moverse hacia la derecha     |" << endl
+                   << "|        -e: seleccionar la casilla       |" << endl
+                   << "|        -r: rotar el barco 90°           |" << endl
+                   << "|_________________________________________|" << reset << endl;
+
+    delay(10);
+    system("cls");
+}
+
+void reglas() {
+    cout << yellow << " ________________________________________________ " << endl
+                   << "|                    Reglas                      |" << endl
+                   << "|________________________________________________|" << endl
+                   << "|   -Comienzo del juego:                         |" << endl
+                   << "|        1. Cada jugador debera colocar sus      |" << endl
+                   << "|       barcos en las casillas que deseen (de    |" << endl
+                   << "|       forma vertical u horizontal).            |" << endl
+                   << "|        2. Al terminar de colocar los barcos se |" << endl
+                   << "|       esperara a que el otro jugador tambien   |" << endl
+                   << "|       los coloque en las casillas deseadas.    |" << endl
+                   << "|                                                |" << endl
+                   << "|   -Combate:                                    |" << endl
+                   << "|        1. al comienzo del combate cada jugador |" << endl
+                   << "|       seleccionara la casilla que desee atacar |" << endl
+                   << "|       y esta sera marcada con una X.           |" << endl
+                   << "|        2. Si la casilla seleccionada contiene  |" << endl
+                   << "|       un barco se le restara una vida al       |" << endl
+                   << "|       jugador contrario.                       |" << endl
+                   << "|        3. Si un barco es hundido, o una de sus |" << endl
+                   << "|       casillas es golpada, se le informara a   |" << endl
+                   << "|       ambos jugadores de esta accion.          |" << endl
+                   << "|                                                |" << endl
+                   << "|   -Fin del juego:                              |" << endl
+                   << "|        1. El juego sera finalizado una vez uno |" << endl
+                   << "|       de los dos jugadores se haya quedado sin |" << endl
+                   << "|       vidas, es decir, sin barcos.             |" << endl
+                   << "|________________________________________________|" << reset << endl;
+        
+    delay(10);
+    system("cls");
+}
+
+bool menu() {
+    while (true) {
+        int opcion = 0;
+        cout << green << "---------Estas jugando battalla naval---------" << reset << endl;
+        cout << orange << "-Seleccione una opcion:" << endl
+                       << "\t 1. Jugar" << endl
+                       << "\t 2. Reglas" << endl
+                       << "\t 3. APB" << endl 
+                       << "\t 4. Cerrar el programa" <<reset << endl;
+        cin >> opcion;
+        if (opcion == 1) return true;
+        else if (opcion == 2) reglas();
+        else if (opcion == 3) print_APB();
+        else if (opcion == 4) return false;
+        else                  cout << "[!] Ingrese una opcion correcta (1, 2, 3 o 4)" << endl;
+    }
+}
+
+
 bool move_selection_player(char key, Jugador& jugador, bool& vertical, int n) {
     int new_row = jugador.position[0];
     int new_col = jugador.position[1];
@@ -145,18 +243,21 @@ void print_board(vector<vector<string>> board, string color){
 void selection_stage(Jugador& jugador) {
     bool vertical = false;
     bool selecting;
- cout<<"Estas jugando battalla naval"<<endl;
- cout<<"Para posicionar sus barcos use W,A,S,D para moverlos. R para rotarlos en 90 grados y E para asignar su posicion final"<<endl;
-    for (int i = 0; i < boats_size.size(); i++) {
-        selecting = true;
-        while (selecting) {
-            print_selection_board( vertical, i, jugador);
-            char key = _getch();
-            selecting = move_selection_player(key, jugador, vertical, i);
-            system("cls");
+
+    if (menu()) {
+        loggin();
+        for (int i = 0; i < boats_size.size(); i++) {
+            selecting = true;
+            while (selecting) {
+                print_selection_board( vertical, i, jugador);
+                char key = _getch();
+                selecting = move_selection_player(key, jugador, vertical, i);
+                system("cls");
+            }
         }
     }
-        jugador.position = {4, 4};
+    
+    jugador.position = {4, 4};
 }
 
 void print_shots_board(Jugador& jugador){

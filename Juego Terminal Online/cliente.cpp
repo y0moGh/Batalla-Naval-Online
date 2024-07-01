@@ -9,7 +9,7 @@
 // Enlaza la biblioteca Winsock 2.2 para permitir el uso de funciones de red
 #pragma comment(lib, "ws2_32.lib")
 
-// Define el puerto en el que el cliente se conectará y el tamaño del búfer de recepción
+// Define el puerto en el que el cliente se conectar? y el tama?o del b?fer de recepci?n
 #define PORT 1234
 #define BUFFER_SIZE 1024
 
@@ -17,6 +17,7 @@ using namespace std;
 
 bool turno = false;
 bool first = false;
+string valido="";
 
 // Colores
 string red = "\033[1;31m";
@@ -72,7 +73,7 @@ string barco_imagen = R"(
 
 // Variables globales
 vector<string> letras = {"A", "B", "C", "D", "E", "F", "G", "H", "I"};
-vector<int> boats_size = {2, 3, 3, 4, 5}; //Tamaño de los barcos en numeros
+vector<int> boats_size = {2, 3, 3, 4, 5}; //Tama?o de los barcos en numeros
 string jugador2_vida = "17";
 
 struct Jugador {
@@ -114,7 +115,7 @@ void print_selection_board(bool vertical, int n, Jugador& jugador) {
             if ((i == 0 && j != 0) || (j == 0 && i != 0)) {
                 cout << blue << jugador.board[i][j] << reset << " | ";
             }
-            // Imprimir el barco que está seleccionando el jugador
+            // Imprimir el barco que est? seleccionando el jugador
             else if (a == i && b == j && cont > 0) {
                 cout << yellow << "B" << reset << " | ";
                 if (!vertical) b++;
@@ -133,14 +134,14 @@ bool put_boat(bool vertical, int n, Jugador& jugador) {
     int r = jugador.position[0];
     int c = jugador.position[1];
 
-    // Verificar si el barco cabe en la posición actual
+    // Verificar si el barco cabe en la posici?n actual
     for (int i = 0; i < boats_size[n]; i++) {
         if (r >= 9 || c >= 9 || jugador.board[r][c] == "B") return false; // Hubo un problema
         if (vertical) r++;
         else c++;
     }
 
-    // Colocar el barco en la posición actual
+    // Colocar el barco en la posici?n actual
     r = jugador.position[0];
     c = jugador.position[1];
     for (int i = 0; i < boats_size[n]; i++) {
@@ -148,17 +149,7 @@ bool put_boat(bool vertical, int n, Jugador& jugador) {
         if (vertical) r++;
         else c++;
     }
-    return true; // Salió todo bien
-}
-
-void loggin() {
-    string nombre, contrasena;
-
-    while(true){
-        // logearse/registrarse
-        cout << "[i] Ingrese su nombre de usuario: "; cin >> nombre;
-        cout << "[i] Ingrese su contraseña: "; cin >> contrasena;
-    }
+    return true; // Sali? todo bien
 }
 
 void print_APB() {
@@ -171,7 +162,7 @@ void print_APB() {
                    << "|        -s: moverse hacia abajo          |" << endl
                    << "|        -d: moverse hacia la derecha     |" << endl
                    << "|        -e: seleccionar la casilla       |" << endl
-                   << "|        -r: rotar el barco 90°           |" << endl
+                   << "|        -r: rotar el barco 90?           |" << endl
                    << "|_________________________________________|" << reset << endl;
 
     delay(10);
@@ -300,7 +291,7 @@ void print_shots_board(Jugador& jugador){
                 cout << red << jugador.shots_board[i][j] << reset << " | ";
             }
             else if(jugador.shots_board[i][j] == "X") cout << orange << jugador.shots_board[i][j] << reset << " | ";
-            // Imprimir el barco que está seleccionando el jugador
+            // Imprimir el barco que est? seleccionando el jugador
             else if(jugador.position[0] == i && jugador.position[1] == j){
                 cout << yellow << "." << reset << " | ";
             }
@@ -362,9 +353,9 @@ bool send_message(SOCKET& client_socket, WSADATA& wsaData, string message){
       return true;
 }
 
-// Función para recibir un mensaje del servidor y asignar los valores al vector player2_shot
+// Funci?n para recibir un mensaje del servidor y asignar los valores al vector player2_shot
 bool receive_shot(SOCKET& client_socket, WSADATA& wsaData, vector<string>& player2_shot) {
-    // Prepara un búfer para recibir la respuesta del servidor
+    // Prepara un b?fer para recibir la respuesta del servidor
     char buffer[BUFFER_SIZE];
     int bytes_received = recv(client_socket, buffer, BUFFER_SIZE, 0); // Recibe datos del servidor
     if (bytes_received <= 0) {
@@ -372,13 +363,13 @@ bool receive_shot(SOCKET& client_socket, WSADATA& wsaData, vector<string>& playe
         return false;
     }
 
-    // Asegúrate de que el buffer esté terminado en null para usarlo como string
+    // Aseg?rate de que el buffer est? terminado en null para usarlo como string
     buffer[bytes_received] = '\0';
 
     // Convierte el buffer a string
     string received(buffer);
     
-    // Asegúrate de que player2_shot tenga el tamaño adecuado
+    // Aseg?rate de que player2_shot tenga el tama?o adecuado
     if (received.size() >= 2) {
         player2_shot.resize(2);
         player2_shot[0] = received.substr(0, 1); // Primer caracter
@@ -390,7 +381,7 @@ bool receive_shot(SOCKET& client_socket, WSADATA& wsaData, vector<string>& playe
 }
 
 bool receive_life(SOCKET& client_socket, WSADATA& wsaData, string& jugador2_vida) {
-    // Prepara un búfer para recibir la respuesta del servidor
+    // Prepara un b?fer para recibir la respuesta del servidor
     char buffer[BUFFER_SIZE];
     int bytes_received = recv(client_socket, buffer, BUFFER_SIZE, 0); // Recibe datos del servidor
     if (bytes_received <= 0) {
@@ -405,16 +396,16 @@ bool receive_life(SOCKET& client_socket, WSADATA& wsaData, string& jugador2_vida
     return true;
 }
 
-// Función para recibir un mensaje del servidor y asignar los valores al vector player2_shot
+// Funci?n para recibir un mensaje del servidor y asignar los valores al vector player2_shot
 bool receive_msg(SOCKET& client_socket, WSADATA& wsaData) {
-    // Prepara un búfer para recibir la respuesta del servidor
+    // Prepara un b?fer para recibir la respuesta del servidor
     char buffer[BUFFER_SIZE];
     int bytes_received = recv(client_socket, buffer, BUFFER_SIZE, 0); // Recibe datos del servidor
     if (bytes_received <= 0) {
         cerr << "Recv failed or connection closed: " << WSAGetLastError() << endl;
         return false;
     }
-    // Asegúrate de que el buffer esté terminado en null para usarlo como string
+    // Aseg?rate de que el buffer est? terminado en null para usarlo como string
     buffer[bytes_received] = '\0';
     // Convierte el buffer a string
     string received(buffer);
@@ -423,10 +414,26 @@ bool receive_msg(SOCKET& client_socket, WSADATA& wsaData) {
     	turno = true;
         first = true;
 	}
+    else if(received == "valido") valido = received;
 }
-    
 
-// Función principal del juego
+void loggin(SOCKET& client_socket, WSADATA& wsaData) {
+    string nombre, contrasenia, creds;
+    bool success;
+
+    while(valido != "valido"){
+        // logearse/registrarse
+        system("cls");
+        cout << "[i] Ingrese su nombre de usuario: "; cin >> nombre;
+        cout << "[i] Ingrese su contrasenia: "; cin >> contrasenia;
+
+        creds = "creds\n" + nombre + "\n" + contrasenia;
+        success = send_message(client_socket, wsaData, creds);
+        success = receive_msg(client_socket, wsaData);
+    }
+}   
+
+// Funci?n principal del juego
 void playing(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData) {
     bool success;
     vector<string> player2_shot = {"0", "0"};
@@ -437,14 +444,14 @@ void playing(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData) {
         // Turno del jugador
         if (turno) {
             string shot = shoot_boats(jugador); // Disparo
-            // Envía el disparo al servidor
+            // Env?a el disparo al servidor
             success = send_message(client_socket, wsaData, shot);
-            if (!success) break; // Sale del bucle si hay algún error        
+            if (!success) break; // Sale del bucle si hay alg?n error        
 
             // Envia la vida al servidor
             string vida = to_string(jugador.vidas);
             success = send_message(client_socket, wsaData, vida);
-            if (!success) break; // Sale del bucle si hay algún error      
+            if (!success) break; // Sale del bucle si hay alg?n error      
 
             turno = false;
         }
@@ -499,10 +506,10 @@ void start_client(Jugador& jugador) {
         return;
     }
 
-    // Configura la dirección del servidor al que se conectará el cliente
+    // Configura la direcci?n del servidor al que se conectar? el cliente
     sockaddr_in server_addr;
     server_addr.sin_family = AF_INET; // Familia de direcciones IPv4
-    server_addr.sin_addr.s_addr = inet_addr("34.176.230.254"); // Dirección IP del servidor (local)
+    server_addr.sin_addr.s_addr = inet_addr("34.176.129.197"); // Direcci?n IP del servidor (local)
     server_addr.sin_port = htons(PORT); // Puerto del servidor
 
     // Conecta el socket del cliente con el servidor
@@ -513,20 +520,21 @@ void start_client(Jugador& jugador) {
         return;
     }
     
-    // Recibir la orden de turno
+    loggin(client_socket, wsaData);
+
 	bool success = receive_msg(client_socket, wsaData);
     if(first) {
         cout << "[...] Esperando al otro jugador" << endl;
         success = receive_msg(client_socket, wsaData);
     }
-    
+
     // Main loop - Playing
     playing(jugador, client_socket, wsaData);
 
     // Cierra el socket del cliente y limpia la biblioteca Winsock
     closesocket(client_socket);
     WSACleanup();
-    cout << "[INFO] Conexión cerrada con el servidor." << endl;
+    cout << "[INFO] Conexi?n cerrada con el servidor." << endl;
 }
 
 int main() {

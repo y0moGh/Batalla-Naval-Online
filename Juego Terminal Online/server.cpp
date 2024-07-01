@@ -9,6 +9,7 @@
 #include <unistd.h>         // Incluye la biblioteca de funciones de POSIX
 #include <mutex>            // Incluye la biblioteca de manejo de exclusión mutua
 #include <algorithm>        // Incluye la biblioteca de algoritmos
+#include <sqlite3.h>        // Incluye la biblioteca de SQLite
 
 #define PORT 1234           // Define el puerto del servidor
 #define BUFFER_SIZE 1024    // Define el tamaño del buffer de recepción
@@ -18,6 +19,8 @@ using namespace std;        // Usa el espacio de nombres estándar
 bool first = true;          // Variable global para identificar el primer cliente
 mutex client_list_mutex;    // Mutex para proteger el acceso a la lista de clientes
 vector<int> client_sockets; // Lista de sockets de los clientes
+
+sqlite3 *db;                // Base de datos SQLite
 
 // Clase que maneja los hilos de los clientes
 class ClientThread {
@@ -29,27 +32,16 @@ public:
     // Operador de función, será ejecutado cuando se inicie el hilo
     void operator()() {
         cout << "\n[+] Client " << ntohs(client_address.sin_port) << " has connected" << endl;
-        
+
+        char buffer[BUFFER_SIZE];             // Buffer para recibir datos
+        memset(buffer, 0, sizeof(buffer));    // Inicializa el buffer con ceros
+
         {
             lock_guard<mutex> lock(client_list_mutex);
-            if (first) {
-                // Enviar "first" al primer cliente
-                const char* msg = "first\n";
-                send(client_socket, msg, strlen(msg), 0);
-              
-                first = false;  // Actualiza la variable para que no se envíe a los siguientes clientes
-            } else {
-                const char* msg2 = "second\n";
-                send(client_socket, msg2, strlen(msg2), 0);
-                send(client_sockets[0], msg2, strlen(msg2), 0); // Le avisamos al jugador1 que ya puede empezar a atacar
-
-            }
-            client_sockets.push_back(client_socket); // Añadir el socket del cliente a la lista
+            //client_sockets.push_back(client_socket); // Elimina esta línea para agregar después de autenticar
         }
 
         while (true) {
-            char buffer[BUFFER_SIZE];             // Buffer para recibir datos
-            memset(buffer, 0, sizeof(buffer));    // Inicializa el buffer con ceros
             int bytesReceived = recv(client_socket, buffer, sizeof(buffer), 0); // Recibe datos del cliente
 
             if (bytesReceived <= 0) { // Si no se reciben datos o hay un error, se sale del bucle
@@ -57,22 +49,101 @@ public:
             }
 
             string message(buffer);   // Convierte el buffer a una cadena de caracteres
-            message = message.substr(0, message.find('\n')); // Elimina caracteres de nueva línea
 
-            if (message == "bye") {   // Si el mensaje es "bye", se sale del bucle
-                break;
-            }
+            // Manejar mensaje con "creds"
+            if (message.find("creds") != string::npos) {
+                size_t pos1 = message.find('\n');
+                size_t pos2 = message.find('\n', pos1 + 1);
 
-            cout << "\n[*] Message received from client " << ntohs(client_address.sin_port) << ": " << message << endl;
+                if (pos1 != string::npos && pos2 != string::npos) {
+                    string user = message.substr(pos1 + 1, pos2 - pos1 - 1);
+                    string pass = message.substr(pos2 + 1);
 
-            // Reenviar el mensaje a todos los demás clientes
-            {
-                lock_guard<mutex> lock(client_list_mutex);
-                for (int socket : client_sockets) {
-                    if (socket != client_socket) {
-                        send(socket, buffer, bytesReceived, 0);
+                    // Remover caracteres de nueva línea adicionales
+                    user.erase(remove(user.begin(), user.end(), '\n'), user.end());
+                    pass.erase(remove(pass.begin(), pass.end(), '\n'), pass.end());
+
+                    cout << "\n[*] Received credentials from client " << ntohs(client_address.sin_port) << " - User: " << user << ", Pass: " << pass << endl;
+
+                    // Verificar usuario y contraseña
+                    string sql = "SELECT password FROM users WHERE name = ?";
+                    sqlite3_stmt *stmt;
+                    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+                        sqlite3_bind_text(stmt, 1, user.c_str(), -1, SQLITE_STATIC);
+                        if (sqlite3_step(stmt) == SQLITE_ROW) {
+                            string stored_pass = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+                            if (stored_pass == pass) {
+                                send(client_socket, "valido", 6, 0);
+
+                                {
+                                    lock_guard<mutex> lock(client_list_mutex);
+                                    client_sockets.push_back(client_socket); // Agregar el socket del cliente a la lista
+                                }
+
+                                // Verificar si el cliente es el unico en el vector
+                                {
+                                    lock_guard<mutex> lock(client_list_mutex);
+                                    if (client_sockets.size() == 1) {
+                                        send(client_socket, "first\n", 6, 0); // Enviar "first\n" al cliente
+                                    }
+                                    else{
+                                        send(client_socket, "secon\n", 6, 0);
+                                        send(client_sockets[0], "secon\n", 6, 0);
+                                    }
+                                }
+                            } else {
+                                send(client_socket, "incorrecto", 10, 0);
+                            }
+                        } else {
+                            // Crear nuevo usuario
+                            sqlite3_finalize(stmt);
+                            sql = "INSERT INTO users (name, password, points) VALUES (?, ?, 0)";
+                            if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+                                sqlite3_bind_text(stmt, 1, user.c_str(), -1, SQLITE_STATIC);
+                                sqlite3_bind_text(stmt, 2, pass.c_str(), -1, SQLITE_STATIC);
+                                if (sqlite3_step(stmt) == SQLITE_DONE) {
+                                    send(client_socket, "valido", 6, 0);
+
+                                    // Almacenar el nombre de usuario autenticado
+                                    // authenticated_user = user;
+
+                                    {
+                                        lock_guard<mutex> lock(client_list_mutex);
+                                        client_sockets.push_back(client_socket); // Agregar el socket del cliente a la lista
+                                    }
+
+                                    // Verificar si el cliente es el único en el vector
+                                    {
+                                        lock_guard<mutex> lock(client_list_mutex);
+                                        if (client_sockets.size() == 1) {
+                                            send(client_socket, "first\n", 6, 0); // Enviar "first\n" al cliente
+                                        }
+                                        else{
+                                           send(client_socket, "secon\n", 6, 0);
+                                           send(client_sockets[0], "secon\n", 6, 0);
+                                        }
+                                    }
+                                }
+                            }
+                            sqlite3_finalize(stmt);
+                        }
                     }
                 }
+            }else{
+                message = message.substr(0, message.find('\n')); // Elimina caracteres de nueva línea
+
+                cout << "\n[*] Message received from client " << ntohs(client_address.sin_port) << ": " << message << endl;
+
+                // Reenviar el mensaje a todos los demás clientes
+                {
+                    lock_guard<mutex> lock(client_list_mutex);
+                    for (int socket : client_sockets) {
+                        if (socket != client_socket) {
+                            send(socket, buffer, bytesReceived, 0);
+                        }
+                    }
+                }
+
             }
         }
 
@@ -125,6 +196,29 @@ int main() {
         return 1;
     }
 
+    // Abrir la base de datos SQLite
+    if (sqlite3_open("example.db", &db) != SQLITE_OK) {
+        cerr << "Cannot open database: " << sqlite3_errmsg(db) << endl;
+        return 1;
+    }
+
+    // Crear tabla de usuarios si no existe
+    const char *create_table_sql = R"(
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE,
+            password TEXT NOT NULL,
+            points INTEGER NOT NULL DEFAULT 0
+        );
+    )";
+    char *errMsg = nullptr;
+    if (sqlite3_exec(db, create_table_sql, 0, 0, &errMsg) != SQLITE_OK) {
+        cerr << "SQL error: " << errMsg << endl;
+        sqlite3_free(errMsg);
+        sqlite3_close(db);
+        return 1;
+    }
+
     cout << "Server listening on port " << PORT << endl;
 
     vector<thread> client_threads; // Vector para almacenar los hilos de clientes
@@ -152,5 +246,6 @@ int main() {
     }
 
     close(server_socket); // Cierra el socket del servidor
+    sqlite3_close(db); // Cierra la base de datos SQLite
     return 0;
 }

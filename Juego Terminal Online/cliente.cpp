@@ -481,12 +481,18 @@ void playing(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData) {
         cout << jugador2_vida;
         turno = true;
         
-         if (jugador.vidas == 0 || jugador2_vida == "0") {
-            // Envia la vida al servidor para notificar que el jugador perdio 
+                 if (jugador.vidas == 0 || jugador2_vida == "0") {
             string vida = to_string(jugador.vidas);
-            send_message(client_socket, wsaData, vida);
+            success = send_message(client_socket, wsaData, vida);
+            if (!success) break;
+            break; // Salir del bucle cuando el juego termina
         }
+		 success = receive_life(client_socket, wsaData, jugador2_vida);     
     }
+
+    // Enviar la vida final del jugador
+    string vida = to_string(jugador.vidas);
+    success = send_message(client_socket, wsaData, vida);
 	if (jugador.vidas == 0) {
             cout << "Perdiste la partida" << endl;
         } else {

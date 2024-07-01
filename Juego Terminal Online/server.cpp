@@ -19,6 +19,7 @@ using namespace std;        // Usa el espacio de nombres estándar
 bool first = true;          // Variable global para identificar el primer cliente
 mutex client_list_mutex;    // Mutex para proteger el acceso a la lista de clientes
 vector<int> client_sockets; // Lista de sockets de los clientes
+vector<string> client_users; // Lista de usuarios de los clientes
 
 sqlite3 *db;                // Base de datos SQLite
 
@@ -78,6 +79,7 @@ public:
                                 {
                                     lock_guard<mutex> lock(client_list_mutex);
                                     client_sockets.push_back(client_socket); // Agregar el socket del cliente a la lista
+                                    client_users.push_back(user); // Agregar el usuario del cliente a la lista
                                 }
 
                                 // Verificar si el cliente es el unico en el vector
@@ -87,8 +89,11 @@ public:
                                         send(client_socket, "first\n", 6, 0); // Enviar "first\n" al cliente
                                     }
                                     else{
-                                        send(client_socket, "secon\n", 6, 0);
-                                        send(client_sockets[0], "secon\n", 6, 0);
+                                           // Enviamos los usuarios del contrincante a cada cliente
+                                           string user1 = "user1\n" + client_users[0];
+                                           string user2 = "user2\n" + client_users[1];
+                                           send(client_socket, user1.c_str(), user1.length(), 0);
+                                           send(client_sockets[0], user2.c_str(), user2.length(), 0);
                                     }
                                 }
                             } else {
@@ -110,6 +115,7 @@ public:
                                     {
                                         lock_guard<mutex> lock(client_list_mutex);
                                         client_sockets.push_back(client_socket); // Agregar el socket del cliente a la lista
+                                        client_users.push_back(user); // Agregar el usuario del cliente a la lista
                                     }
 
                                     // Verificar si el cliente es el único en el vector
@@ -119,8 +125,11 @@ public:
                                             send(client_socket, "first\n", 6, 0); // Enviar "first\n" al cliente
                                         }
                                         else{
-                                           send(client_socket, "secon\n", 6, 0);
-                                           send(client_sockets[0], "secon\n", 6, 0);
+                                           // Enviamos los usuarios del contrincante a cada cliente
+                                           string user1 = "user1\n" + client_users[0];
+                                           string user2 = "user2\n" + client_users[1];
+                                           send(client_socket, user1.c_str(), user1.length(), 0);
+                                           send(client_sockets[0], user2.c_str(), user2.length(), 0);
                                         }
                                     }
                                 }
@@ -149,7 +158,8 @@ public:
 
         {
             lock_guard<mutex> lock(client_list_mutex);
-            client_sockets.erase(remove(client_sockets.begin(), client_sockets.end(), client_socket), client_sockets.end());
+            client_sockets.erase(remove(client_sockets.begin(), client_sockets.end(), client_socket), client_sockets.end()); // Vaciamos el vector client_sockets cuando termina la partida
+            client_users.clear(); // Vaciamos el vector client_users cuando termina la partida
             if (client_sockets.empty()) {
                 first = true;  // Reinicia la variable first si no hay clientes conectados
             }

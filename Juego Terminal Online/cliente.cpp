@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <string>
 #include <winsock2.h>
@@ -23,6 +22,9 @@ string green = "\033[1;32m";
 string orange = "\033[38;5;208m";
 string yellow = "\033[38;5;226m";
 string f_yellow = "\033[48;5;226m";
+string f_gray = "\033[48;5;7m";
+string f_red = "\033[1;41m";
+
 string barco_imagen = R"(                                                                                         
                                                                                           
                                                                                           
@@ -174,6 +176,7 @@ void load_board(Jugador& jugador) {
         }
     }
 }
+
 void print_selection_board(bool vertical, int n, Jugador& jugador) {
     int a = jugador.position[0];
     int b = jugador.position[1];
@@ -182,22 +185,24 @@ void print_selection_board(bool vertical, int n, Jugador& jugador) {
         for (int j = 0; j < 9; j++) {
             // Colores en la primera fila y columna
             if ((i == 0 && j != 0) || (j == 0 && i != 0)) {
-                cout << blue << jugador.board[i][j] << reset << " | ";
+                cout << blue << " " << jugador.board[i][j] << reset << " |";
             }
             // Imprimir el barco que esta seleccionando el jugador
             else if (a == i && b == j && cont > 0) {
-                cout << f_yellow << " " << reset << " | ";
+                cout << f_yellow << "   " << reset << "|";
                 if (!vertical) b++;
                 else a++;
                 cont--;
             } else {
-                cout << jugador.board[i][j] << " | ";
+                if (jugador.board[i][j] == "B") cout << f_gray << "   " << reset << "|";
+                else                            cout << "   |";
             }
         }
         cout << endl;
         cout << "-----------------------------------" << endl;
     }
 }
+
 bool put_boat(bool vertical, int n, Jugador& jugador) {
     int r = jugador.position[0];
     int c = jugador.position[1];
@@ -358,22 +363,23 @@ void print_shots_board(Jugador& jugador){
         for (int j = 0; j < 9; j++){
             // Colores en la primera fila y columna
             if ((i == 0 && j != 0) || (j == 0 && i != 0)) {
-                cout << red << jugador.shots_board[i][j] << reset << " | ";
+                cout << red << " " << jugador.shots_board[i][j] << reset << " |";
             }
-            else if(jugador.shots_board[i][j] == "X") cout << orange << jugador.shots_board[i][j] << reset << " | ";
             // Imprimir el barco que esta seleccionando el jugador
             else if(jugador.position[0] == i && jugador.position[1] == j){
-                if (jugador.shots_board[i][j] == "X") cout << red << jugador.shots_board[i][j] << reset << " | ";
-                else                                  cout << red << "." << reset << " | ";
+                if (jugador.shots_board[i][j] == "X") cout << red << " " << jugador.shots_board[i][j] << reset << " |";
+                else                                  cout << f_red << "   " << reset << "|";
             }
+            else if(jugador.shots_board[i][j] == "X") cout << orange << " " << jugador.shots_board[i][j] << reset << " |";
             else {
-                cout << jugador.shots_board[i][j] << " | ";
+                cout << "   |";
             }
         }
         cout << endl;
-        cout << "-----------------------------------" << endl;
+        cout << "-----------------------------------" << endl;  // Reescribe esta línea
     }
 }
+
 
 bool move_shot(Jugador& jugador, char key, string& shot){
     int new_row = jugador.position[0];
@@ -639,3 +645,4 @@ int main() {
     // Inicia el cliente con el jugador
     start_client(jugador); 
 }
+

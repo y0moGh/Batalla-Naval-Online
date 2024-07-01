@@ -1,20 +1,19 @@
-#include <iostream>         // Incluye la biblioteca de entrada/salida estndar
+#include <iostream>         // Incluye la biblioteca de entrada/salida estándar
 #include <string>           // Incluye la biblioteca de cadenas de caracteres
 #include <thread>           // Incluye la biblioteca de manejo de hilos
 #include <vector>           // Incluye la biblioteca de vectores
-#include <cstring>          // Incluye la biblioteca de manipulacin de cadenas de caracteres
+#include <cstring>          // Incluye la biblioteca de manipulación de cadenas de caracteres
 #include <arpa/inet.h>      // Incluye la biblioteca de funciones de Internet
 #include <sys/types.h>      // Incluye tipos de datos usados en sistemas de sockets
 #include <sys/socket.h>     // Incluye la biblioteca de funciones de sockets
 #include <unistd.h>         // Incluye la biblioteca de funciones de POSIX
-#include <mutex>            // Incluye la biblioteca de manejo de exclusin mutua
+#include <mutex>            // Incluye la biblioteca de manejo de exclusión mutua
 #include <algorithm>        // Incluye la biblioteca de algoritmos
-#include <unistd.h>         // Sleep
 
 #define PORT 1234           // Define el puerto del servidor
-#define BUFFER_SIZE 1024    // Define el tamao del buffer de recepcin
+#define BUFFER_SIZE 1024    // Define el tamaño del buffer de recepción
 
-using namespace std;        // Usa el espacio de nombres estndar
+using namespace std;        // Usa el espacio de nombres estándar
 
 bool first = true;          // Variable global para identificar el primer cliente
 mutex client_list_mutex;    // Mutex para proteger el acceso a la lista de clientes
@@ -27,24 +26,25 @@ public:
     ClientThread(int client_socket, sockaddr_in client_address)
         : client_socket(client_socket), client_address(client_address) {}
 
-    // Operador de funcin, ser ejecutado cuando se inicie el hilo
+    // Operador de función, será ejecutado cuando se inicie el hilo
     void operator()() {
         cout << "\n[+] Client " << ntohs(client_address.sin_port) << " has connected" << endl;
         
         {
             lock_guard<mutex> lock(client_list_mutex);
             if (first) {
-                // Enviar "disparo" y "vida" al primer cliente
+                // Enviar "first" al primer cliente
                 const char* msg = "first\n";
                 send(client_socket, msg, strlen(msg), 0);
               
-                first = false;  // Actualiza la variable para que no se enve a los siguientes clientes
-            }
-            else{
+                first = false;  // Actualiza la variable para que no se envíe a los siguientes clientes
+            } else {
                 const char* msg2 = "second\n";
                 send(client_socket, msg2, strlen(msg2), 0);
+                send(client_sockets[0], msg2, strlen(msg2), 0); // Le avisamos al jugador1 que ya puede empezar a atacar
+
             }
-            client_sockets.push_back(client_socket); // Aadir el socket del cliente a la lista
+            client_sockets.push_back(client_socket); // Añadir el socket del cliente a la lista
         }
 
         while (true) {
@@ -57,7 +57,7 @@ public:
             }
 
             string message(buffer);   // Convierte el buffer a una cadena de caracteres
-            message = message.substr(0, message.find('\n')); // Elimina caracteres de nueva lnea
+            message = message.substr(0, message.find('\n')); // Elimina caracteres de nueva línea
 
             if (message == "bye") {   // Si el mensaje es "bye", se sale del bucle
                 break;
@@ -65,7 +65,7 @@ public:
 
             cout << "\n[*] Message received from client " << ntohs(client_address.sin_port) << ": " << message << endl;
 
-            // Reenviar el mensaje a todos los demas clientes
+            // Reenviar el mensaje a todos los demás clientes
             {
                 lock_guard<mutex> lock(client_list_mutex);
                 for (int socket : client_sockets) {
@@ -79,6 +79,9 @@ public:
         {
             lock_guard<mutex> lock(client_list_mutex);
             client_sockets.erase(remove(client_sockets.begin(), client_sockets.end(), client_socket), client_sockets.end());
+            if (client_sockets.empty()) {
+                first = true;  // Reinicia la variable first si no hay clientes conectados
+            }
         }
 
         cout << "\n[!] Client " << ntohs(client_address.sin_port) << " disconnected" << endl;
@@ -87,7 +90,7 @@ public:
 
 private:
     int client_socket;          // Socket del cliente
-    sockaddr_in client_address; // Direccin del cliente
+    sockaddr_in client_address; // Dirección del cliente
 };
 
 int main() {
@@ -99,16 +102,16 @@ int main() {
     }
 
     int opt = 1;
-    // Configura el socket para reutilizar la direccin
+    // Configura el socket para reutilizar la dirección
     setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-    // Configura la direccin del servidor
+    // Configura la dirección del servidor
     sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;                // Familia de direcciones (IPv4)
-    server_addr.sin_addr.s_addr = htonl(INADDR_ANY); // Direccin IP (cualquier interfaz)
+    server_addr.sin_addr.s_addr = htonl(INADDR_ANY); // Dirección IP (cualquier interfaz)
     server_addr.sin_port = htons(PORT);              // Puerto del servidor
 
-    // Asocia el socket con la direccin y el puerto especificados
+    // Asocia el socket con la dirección y el puerto especificados
     if (bind(server_socket, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1) {
         cerr << "Bind failed: " << strerror(errno) << endl;
         close(server_socket);
@@ -126,15 +129,15 @@ int main() {
 
     vector<thread> client_threads; // Vector para almacenar los hilos de clientes
 
-    while (client_sockets.size() < 1) {
-        sockaddr_in client_addr;            // Direccin del cliente
-        socklen_t client_addr_len = sizeof(client_addr); // Tamao de la direccin del cliente
-        // Acepta una conexin entrante
+    while (true) {
+        sockaddr_in client_addr;            // Dirección del cliente
+        socklen_t client_addr_len = sizeof(client_addr); // Tamaño de la dirección del cliente
+        // Acepta una conexión entrante
         int client_socket = accept(server_socket, (struct sockaddr*)&client_addr, &client_addr_len);
 
         if (client_socket == -1) {
             cerr << "Accept failed: " << strerror(errno) << endl;
-            continue; // Contina con la siguiente iteracin si falla aceptar la conexin
+            continue; // Continúa con la siguiente iteración si falla aceptar la conexión
         }
 
         // Crea un nuevo hilo para manejar el cliente

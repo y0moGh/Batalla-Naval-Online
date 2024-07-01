@@ -518,7 +518,7 @@ void playing(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData) {
     vector<string> player2_shot = {"0", "0"};
     // In game
     while (jugador.vidas != 0 && jugador2_vida != "0") {
-    	
+        
         // Turno del jugador
         if (turno) {
             string shot = shoot_boats(jugador); // Disparo
@@ -536,8 +536,8 @@ void playing(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData) {
         print_board(jugador.board, blue);
         cout << endl << endl << endl << endl;
         print_board(jugador.shots_board, red);
-		
-		// Recibe el disparo del otro jugador 
+        
+        // Recibe el disparo del otro jugador 
         success = receive_shot(client_socket, wsaData, player2_shot);
         if (!success) break;
         // Chequeamos si el disparo fue acertado
@@ -547,33 +547,36 @@ void playing(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData) {
         if(jugador.board[a][b] == "B"){
             jugador.vidas -= 1;
         }
-		
+        
         // Recibe la vida del otro jugador
         success = receive_life(client_socket, wsaData, jugador2_vida);
         if (!success) break;
         cout << jugador2_vida;
-        turno = true;
         
-         if (jugador.vidas == 0 || jugador2_vida == "0") {
-            // Envia la vida al servidor para notificar que el jugador perdio 
+        // Verifica si el juego ha terminado después de recibir la vida del otro jugador
+        if (jugador.vidas == 0 || jugador2_vida == "0") {
+            // Envia la vida al servidor para notificar que el jugador perdió 
             string vida = to_string(jugador.vidas);
             send_message(client_socket, wsaData, vida);
+            break; // Sale del bucle mientras
         }
+        
+        turno = true;
     }
     
     char option;
     system("cls");
-	if (jugador.vidas == 0) {
-            cout << "Perdiste la partida" << endl;
-            cout<<moriste<<endl;
-           	option = _getch();
-			system("cls"); 
-        } else {
-            cout << "Ganaste la partida" << endl;
-            cout<<ganaste;
-            	option = _getch();
-				system("cls");
-        }
+    if (jugador.vidas == 0) {
+        cout << "Perdiste la partida" << endl;
+        cout << moriste << endl;
+        option = _getch();
+        system("cls"); 
+    } else {
+        cout << "Ganaste la partida" << endl;
+        cout << ganaste;
+        option = _getch();
+        system("cls");
+    }
     menu();
 }
 

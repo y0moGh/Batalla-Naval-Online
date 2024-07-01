@@ -7,7 +7,7 @@
 #include <ctime>
 // Enlaza la biblioteca Winsock 2.2 para permitir el uso de funciones de red
 #pragma comment(lib, "ws2_32.lib")
-// Define el puerto en el que el cliente se conectara y el tamanio del buffer de recepci?n
+// Define el puerto en el que el cliente se conectara y el tamanio del buffer de recepcion
 #define PORT 1234
 #define BUFFER_SIZE 1024
 using namespace std;

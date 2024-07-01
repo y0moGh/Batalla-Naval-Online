@@ -15,7 +15,8 @@
 
 using namespace std;
 
-bool turno=false;
+bool turno = false;
+bool first = false;
 
 // Colores
 string red = "\033[1;31m";
@@ -152,25 +153,11 @@ bool put_boat(bool vertical, int n, Jugador& jugador) {
 
 void loggin() {
     string nombre, contrasena;
-    char opcion;
 
-    while (true) {
-        cout << "[i] Ya tienes una cuenta? (s/n) ";
-        cin >> opcion;
-
-        if (opcion == 's') {
-            // hay que preguntar a la base de datos si el nombre y la contrasena son correctos
-            cout << "[i] Ingrese su nombre de usuario: "; cin >> nombre;
-            cout << "[i] Ingrese su contraseña: "; cin >> contrasena;
-            break;
-        } else if (opcion == 'n') {
-            // hay que preguntar a la base de datos si el nombre ya existe
-            cout << "[i] Ingrese su nombre de usuario: "; cin >> nombre;
-            cout << "[i] Ingrese su contraseña: "; cin >> contrasena;
-            break;
-        } else {
-            cout << red << "[!] Error, opcion inexistente" << endl << "[!] Porfavor ingrese una opcion existente (s/n)" << reset << endl;
-        }
+    while(true){
+        // logearse/registrarse
+        cout << "[i] Ingrese su nombre de usuario: "; cin >> nombre;
+        cout << "[i] Ingrese su contraseña: "; cin >> contrasena;
     }
 }
 
@@ -291,7 +278,6 @@ void selection_stage(Jugador& jugador) {
     bool selecting;
 
     if (menu()) {
-        loggin();
         for (int i = 0; i < boats_size.size(); i++) {
             selecting = true;
             while (selecting) {
@@ -435,6 +421,7 @@ bool receive_msg(SOCKET& client_socket, WSADATA& wsaData) {
     
     if(received == "first\n") {
     	turno = true;
+        first = true;
 	}
 }
     
@@ -515,7 +502,7 @@ void start_client(Jugador& jugador) {
     // Configura la dirección del servidor al que se conectará el cliente
     sockaddr_in server_addr;
     server_addr.sin_family = AF_INET; // Familia de direcciones IPv4
-    server_addr.sin_addr.s_addr = inet_addr("34.176.96.139"); // Dirección IP del servidor (local)
+    server_addr.sin_addr.s_addr = inet_addr("34.176.230.254"); // Dirección IP del servidor (local)
     server_addr.sin_port = htons(PORT); // Puerto del servidor
 
     // Conecta el socket del cliente con el servidor
@@ -528,11 +515,11 @@ void start_client(Jugador& jugador) {
     
     // Recibir la orden de turno
 	bool success = receive_msg(client_socket, wsaData);
-
-    // Carga el tablero
-    load_board(jugador); // Cargo el tablero con las filas y columnas principales
-    selection_stage(jugador);
-
+    if(first) {
+        cout << "[...] Esperando al otro jugador" << endl;
+        success = receive_msg(client_socket, wsaData);
+    }
+    
     // Main loop - Playing
     playing(jugador, client_socket, wsaData);
 
@@ -543,8 +530,13 @@ void start_client(Jugador& jugador) {
 }
 
 int main() {
-    // Creamos los 2 jugadores
+    // Inicializamos el struct del jugador
     Jugador jugador;
-
-    start_client(jugador); // Inicia el cliente con el jugador
+    
+    // Carga el tablero
+    load_board(jugador); // Cargo el tablero con las filas y columnas principales
+    selection_stage(jugador);
+    
+    // Inicia el cliente con el jugador
+    start_client(jugador); 
 }

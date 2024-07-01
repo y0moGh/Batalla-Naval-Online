@@ -21,6 +21,7 @@ string reset = "\033[0m";
 string green = "\033[1;32m";
 string orange = "\033[38;5;208m";
 string yellow = "\033[38;5;226m";
+string f_yellow = "\033[48;5;226m";
 string barco_imagen = R"(                                                                                         
                                                                                           
                                                                                           
@@ -63,6 +64,7 @@ string barco_imagen = R"(
                                           .:::----====++**##%%@@@@@@@@%+.                 
                                                                  .:::.                                                                                                            
 )";
+
 // Variables globales
 vector<string> letras = {"A", "B", "C", "D", "E", "F", "G", "H", "I"};
 vector<int> boats_size = {2, 3, 3, 4, 5}; //Tamanio de los barcos en numeros
@@ -104,7 +106,7 @@ void print_selection_board(bool vertical, int n, Jugador& jugador) {
             }
             // Imprimir el barco que esta seleccionando el jugador
             else if (a == i && b == j && cont > 0) {
-                cout << yellow << "B" << reset << " | ";
+                cout << f_yellow << " " << reset << " | ";
                 if (!vertical) b++;
                 else a++;
                 cont--;
@@ -137,22 +139,21 @@ bool put_boat(bool vertical, int n, Jugador& jugador) {
 }
 
 void print_APB() {
-    cout << yellow << " _________________________________________" << endl
 
     while (!_getch()) {
         cout << yellow << " _________________________________________" << endl
-                   << "|                  APB                    |" << endl
-                   << "|_________________________________________|" << endl
-                   << "|    Movimientos:                         |" << endl
-                   << "|        -w: moverse hacia arriba         |" << endl
-                   << "|        -a: moverse hacia la izquierda   |" << endl
-                   << "|        -s: moverse hacia abajo          |" << endl
-                   << "|        -d: moverse hacia la derecha     |" << endl
-                   << "|        -e: seleccionar la casilla       |" << endl
-                   << "|        -r: rotar el barco 90°           |" << endl
-                   << "|_________________________________________|" << endl
-                   << "|   -Presione una tecla si quiere salir   |" << endl
-                   << "|_________________________________________|" << reset << endl;
+                       << "|                  APB                    |" << endl
+                       << "|_________________________________________|" << endl
+                       << "|    Movimientos:                         |" << endl
+                       << "|        -w: moverse hacia arriba         |" << endl
+                       << "|        -a: moverse hacia la izquierda   |" << endl
+                       << "|        -s: moverse hacia abajo          |" << endl
+                       << "|        -d: moverse hacia la derecha     |" << endl
+                       << "|        -e: seleccionar la casilla       |" << endl
+                       << "|        -r: rotar el barco 90°           |" << endl
+                       << "|_________________________________________|" << endl
+                       << "|   -Presione una tecla si quiere salir   |" << endl
+                       << "|_________________________________________|" << reset << endl;
     }
 
     delay(10);
@@ -160,33 +161,6 @@ void print_APB() {
 }
 
 void reglas() {
-    cout << yellow << " ________________________________________________ " << endl
-                   << "|                    Reglas                      |" << endl
-                   << "|________________________________________________|" << endl
-                   << "|   -Comienzo del juego:                         |" << endl
-                   << "|        1. Cada jugador debera colocar sus      |" << endl
-                   << "|       barcos en las casillas que deseen (de    |" << endl
-                   << "|       forma vertical u horizontal).            |" << endl
-                   << "|        2. Al terminar de colocar los barcos se |" << endl
-                   << "|       esperara a que el otro jugador tambien   |" << endl
-                   << "|       los coloque en las casillas deseadas.    |" << endl
-                   << "|                                                |" << endl
-                   << "|   -Combate:                                    |" << endl
-                   << "|        1. al comienzo del combate cada jugador |" << endl
-                   << "|       seleccionara la casilla que desee atacar |" << endl
-                   << "|       y esta sera marcada con una X.           |" << endl
-                   << "|        2. Si la casilla seleccionada contiene  |" << endl
-                   << "|       un barco se le restara una vida al       |" << endl
-                   << "|       jugador contrario.                       |" << endl
-                   << "|        3. Si un barco es hundido, o una de sus |" << endl
-                   << "|       casillas es golpada, se le informara a   |" << endl
-                   << "|       ambos jugadores de esta accion.          |" << endl
-                   << "|                                                |" << endl
-                   << "|   -Fin del juego:                              |" << endl
-                   << "|        1. El juego sera finalizado una vez uno |" << endl
-                   << "|       de los dos jugadores se haya quedado sin |" << endl
-                   << "|       vidas, es decir, sin barcos.             |" << endl
-                   << "|________________________________________________|" << reset << endl;
 
     while(!_getch()) {
         cout << yellow << " ________________________________________________ " << endl
@@ -243,7 +217,6 @@ bool menu() {
         else if (opcion == 2) reglas();
         else if (opcion == 3) print_APB();
         else if (opcion == 4) return false;
-        else                  cout << "[!] Ingrese una opcion correcta (1, 2, 3 o 4)" << endl;
         else                  cout << red << "[!] Ingrese una opcion correcta (1, 2, 3 o 4)" << reset << endl;
     }
 }
@@ -268,6 +241,7 @@ bool move_selection_player(char key, Jugador& jugador, bool& vertical, int n) {
     jugador.position[1] = new_col;
     return true;
 }
+
 void print_board(vector<vector<string>> board, string color){
     for (int i = 0; i < 9; i++){
         for (int j = 0; j < 9; j++){
@@ -275,11 +249,10 @@ void print_board(vector<vector<string>> board, string color){
             if ((i == 0 && j != 0) || (j == 0 && i != 0)) {
                 cout << color << board[i][j] << reset << " | ";
             }
-            else if(board[i][j] == "B") cout << yellow << board[i][j] << reset << " | ";
+            else if(board[i][j] == "B") cout << f_yellow << " " << reset << " | ";
             else if(board[i][j] == "X") cout << orange << board[i][j] << reset << " | ";
-            else {
-                cout << board[i][j] << " | ";
-            }
+            else                        cout << board[i][j] << " | ";
+
         }
         cout << endl;
         cout << "-----------------------------------" << endl;
@@ -302,6 +275,7 @@ void selection_stage(Jugador& jugador) {
     
     jugador.position = {4, 4};
 }
+
 void print_shots_board(Jugador& jugador){
     for (int i = 0; i < 9; i++){
         for (int j = 0; j < 9; j++){
@@ -312,7 +286,8 @@ void print_shots_board(Jugador& jugador){
             else if(jugador.shots_board[i][j] == "X") cout << orange << jugador.shots_board[i][j] << reset << " | ";
             // Imprimir el barco que esta seleccionando el jugador
             else if(jugador.position[0] == i && jugador.position[1] == j){
-                cout << yellow << "." << reset << " | ";
+                if (jugador.shots_board[i][j] == "X") cout << f_yellow << orange << jugador.shots_board[i][j] << reset << " | ";
+                else                                  cout << f_yellow << "." << reset << " | ";
             }
             else {
                 cout << jugador.shots_board[i][j] << " | ";
@@ -322,6 +297,7 @@ void print_shots_board(Jugador& jugador){
         cout << "-----------------------------------" << endl;
     }
 }
+
 bool move_shot(Jugador& jugador, char key, string& shot){
     int new_row = jugador.position[0];
     int new_col = jugador.position[1];
@@ -338,6 +314,7 @@ bool move_shot(Jugador& jugador, char key, string& shot){
     jugador.position[1] = new_col;
     return true;
 }
+
 string shoot_boats(Jugador& jugador){
     bool shooting = true;
     string shot;
@@ -354,6 +331,7 @@ string shoot_boats(Jugador& jugador){
     }
     return shot;
 }
+
 bool send_message(SOCKET& client_socket, WSADATA& wsaData, string message){
       int send_result = send(client_socket, message.c_str(), message.size(), 0);
       if (send_result == SOCKET_ERROR) {
@@ -362,6 +340,7 @@ bool send_message(SOCKET& client_socket, WSADATA& wsaData, string message){
       }
       return true;
 }
+
 // Funcion para recibir un mensaje del servidor y asignar los valores al vector player2_shot
 bool receive_shot(SOCKET& client_socket, WSADATA& wsaData, vector<string>& player2_shot) {
     // Prepara un bufer para recibir la respuesta del servidor
@@ -385,6 +364,7 @@ bool receive_shot(SOCKET& client_socket, WSADATA& wsaData, vector<string>& playe
 	
     return true;
 }
+
 bool receive_life(SOCKET& client_socket, WSADATA& wsaData, string& jugador2_vida) {
     // Prepara un buffer para recibir la respuesta del servidor
     char buffer[BUFFER_SIZE];
@@ -399,6 +379,7 @@ bool receive_life(SOCKET& client_socket, WSADATA& wsaData, string& jugador2_vida
     
     return true;
 }
+
 // Funcion para recibir un mensaje del servidor y asignar los valores al vector player2_shot
 bool receive_msg(SOCKET& client_socket, WSADATA& wsaData) {
     // Prepara un buffer para recibir la respuesta del servidor
@@ -419,6 +400,7 @@ bool receive_msg(SOCKET& client_socket, WSADATA& wsaData) {
 	}
     else if(received == "valido") valido = received;
 }
+
 void loggin(SOCKET& client_socket, WSADATA& wsaData) {
     string nombre, contrasenia, creds;
     bool success;
@@ -432,6 +414,7 @@ void loggin(SOCKET& client_socket, WSADATA& wsaData) {
         success = receive_msg(client_socket, wsaData);
     }
 }   
+
 // Funcion principal del juego
 void playing(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData) {
     bool success;
@@ -480,6 +463,7 @@ void playing(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData) {
             cout << "Ganaste la partida" << endl;
         }
 }
+
 void start_client(Jugador& jugador) {
     WSADATA wsaData;
     // Inicializa la biblioteca Winsock
@@ -521,6 +505,7 @@ void start_client(Jugador& jugador) {
     WSACleanup();
     cout << "[INFO] Conexion cerrada con el servidor." << endl;
 }
+
 int main() {
     // Inicializamos el struct del jugador
     Jugador jugador;

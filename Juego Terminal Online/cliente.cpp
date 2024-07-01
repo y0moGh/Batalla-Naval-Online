@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <string>
 #include <winsock2.h>
@@ -22,7 +23,6 @@ string green = "\033[1;32m";
 string orange = "\033[38;5;208m";
 string yellow = "\033[38;5;226m";
 string f_yellow = "\033[48;5;226m";
-string f_gray = "\033[48;5;7m";
 string barco_imagen = R"(                                                                                         
                                                                                           
                                                                                           
@@ -182,17 +182,16 @@ void print_selection_board(bool vertical, int n, Jugador& jugador) {
         for (int j = 0; j < 9; j++) {
             // Colores en la primera fila y columna
             if ((i == 0 && j != 0) || (j == 0 && i != 0)) {
-                cout << blue << " " << jugador.board[i][j] << reset << " |";
+                cout << blue << jugador.board[i][j] << reset << " | ";
             }
             // Imprimir el barco que esta seleccionando el jugador
             else if (a == i && b == j && cont > 0) {
-                cout << f_yellow << "   " << reset << "|";
+                cout << f_yellow << " " << reset << " | ";
                 if (!vertical) b++;
                 else a++;
                 cont--;
             } else {
-                if (jugador.board[i][j] == "B") cout << f_gray << "   " << reset << "|";
-                else                            cout << "   |";
+                cout << jugador.board[i][j] << " | ";
             }
         }
         cout << endl;
@@ -231,7 +230,7 @@ void print_APB() {
                     << "|        -s: moverse hacia abajo          |" << endl
                     << "|        -d: moverse hacia la derecha     |" << endl
                     << "|        -e: seleccionar la casilla       |" << endl
-                    << "|        -r: rotar el barco 90°           |" << endl
+                    << "|        -r: rotar el barco 90?           |" << endl
                     << "|_________________________________________|" << endl
                     << "|   -Presione una tecla si quiere salir   |" << endl
                     << "|_________________________________________|" << reset << endl;
@@ -460,14 +459,14 @@ bool receive_life(SOCKET& client_socket, WSADATA& wsaData, string& jugador2_vida
     return true;
 }
 
-// Función para obtener el mensaje después de "user1\n"
+// Funci?n para obtener el mensaje despu?s de "user1\n"
 string get_user(const string& received, string prefix) {
     size_t pos = received.find(prefix);
 
     if (pos != string::npos) {
         return received.substr(pos + prefix.length());
     } else {
-        return ""; // Retornar cadena vacía si no se encuentra al usuario
+        return ""; // Retornar cadena vac?a si no se encuentra al usuario
     }
 }
 
@@ -555,9 +554,11 @@ void playing(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData) {
         if (!success) break;
         cout << jugador2_vida;
         
-        // Verifica si el juego ha terminado después de recibir la vida del otro jugador
+        // Verifica si el juego ha terminado despu?s de recibir la vida del otro jugador
         if (jugador.vidas == 0 || jugador2_vida == "0") {
-            // Envia la vida al servidor para notificar que el jugador perdió 
+         string shot = {"00"};
+        	 success = send_message(client_socket, wsaData, shot);
+            // Envia la vida al servidor para notificar que el jugador perdi? 
             string vida = to_string(jugador.vidas);
             send_message(client_socket, wsaData, vida);
             break; // Sale del bucle mientras
@@ -610,15 +611,17 @@ void start_client(Jugador& jugador) {
         return;
     }
     
-    loggin(client_socket, wsaData);
-	bool success = receive_msg(client_socket, wsaData);
-    if(first) {
-        cout << "[...] Esperando al otro jugador" << endl;
-        success = receive_msg(client_socket, wsaData);
-    }
 
-    // Main loop - Playing
-    playing(jugador, client_socket, wsaData);
+	loggin(client_socket, wsaData);
+	bool success = receive_msg(client_socket, wsaData);
+	if(first) {
+	    cout << "[...] Esperando al otro jugador" << endl;
+	    success = receive_msg(client_socket, wsaData);
+	}
+	
+	// Main loop - Playing
+	playing(jugador, client_socket, wsaData);
+
     // Cierra el socket del cliente y limpia la biblioteca Winsock
     closesocket(client_socket);
     WSACleanup();

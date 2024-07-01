@@ -153,7 +153,9 @@ bool put_boat(bool vertical, int n, Jugador& jugador) {
 }
 
 void print_APB() {
-    cout << yellow << " _________________________________________" << endl
+    
+    while (!_getch()) {
+        cout << yellow << " _________________________________________" << endl
                    << "|                  APB                    |" << endl
                    << "|_________________________________________|" << endl
                    << "|    Movimientos:                         |" << endl
@@ -162,43 +164,50 @@ void print_APB() {
                    << "|        -s: moverse hacia abajo          |" << endl
                    << "|        -d: moverse hacia la derecha     |" << endl
                    << "|        -e: seleccionar la casilla       |" << endl
-                   << "|        -r: rotar el barco 90?           |" << endl
+                   << "|        -r: rotar el barco 90°           |" << endl
+                   << "|_________________________________________|" << endl
+                   << "|   -Presione una tecla si quiere salir   |" << endl
                    << "|_________________________________________|" << reset << endl;
+    }
 
-    delay(10);
     system("cls");
 }
 
 void reglas() {
-    cout << yellow << " ________________________________________________ " << endl
-                   << "|                    Reglas                      |" << endl
-                   << "|________________________________________________|" << endl
-                   << "|   -Comienzo del juego:                         |" << endl
-                   << "|        1. Cada jugador debera colocar sus      |" << endl
-                   << "|       barcos en las casillas que deseen (de    |" << endl
-                   << "|       forma vertical u horizontal).            |" << endl
-                   << "|        2. Al terminar de colocar los barcos se |" << endl
-                   << "|       esperara a que el otro jugador tambien   |" << endl
-                   << "|       los coloque en las casillas deseadas.    |" << endl
-                   << "|                                                |" << endl
-                   << "|   -Combate:                                    |" << endl
-                   << "|        1. al comienzo del combate cada jugador |" << endl
-                   << "|       seleccionara la casilla que desee atacar |" << endl
-                   << "|       y esta sera marcada con una X.           |" << endl
-                   << "|        2. Si la casilla seleccionada contiene  |" << endl
-                   << "|       un barco se le restara una vida al       |" << endl
-                   << "|       jugador contrario.                       |" << endl
-                   << "|        3. Si un barco es hundido, o una de sus |" << endl
-                   << "|       casillas es golpada, se le informara a   |" << endl
-                   << "|       ambos jugadores de esta accion.          |" << endl
-                   << "|                                                |" << endl
-                   << "|   -Fin del juego:                              |" << endl
-                   << "|        1. El juego sera finalizado una vez uno |" << endl
-                   << "|       de los dos jugadores se haya quedado sin |" << endl
-                   << "|       vidas, es decir, sin barcos.             |" << endl
-                   << "|________________________________________________|" << reset << endl;
+    
+    while(!_getch()) {
+        cout << yellow << " ________________________________________________ " << endl
+                       << "|                    Reglas                      |" << endl
+                       << "|________________________________________________|" << endl
+                       << "|                                                |" << endl
+                       << "|   -Comienzo del juego:                         |" << endl
+                       << "|        1. Cada jugador debera colocar sus      |" << endl
+                       << "|       barcos en las casillas que deseen (de    |" << endl
+                       << "|       forma vertical u horizontal).            |" << endl
+                       << "|        2. Al terminar de colocar los barcos se |" << endl
+                       << "|       esperara a que el otro jugador tambien   |" << endl
+                       << "|       los coloque en las casillas deseadas.    |" << endl
+                       << "|                                                |" << endl
+                       << "|   -Combate:                                    |" << endl
+                       << "|        1. al comienzo del combate cada jugador |" << endl
+                       << "|       seleccionara la casilla que desee atacar |" << endl
+                       << "|       y esta sera marcada con una X.           |" << endl
+                       << "|        2. Si la casilla seleccionada contiene  |" << endl
+                       << "|       un barco se le restara una vida al       |" << endl
+                       << "|       jugador contrario.                       |" << endl
+                       << "|        3. Si un barco es hundido, o una de sus |" << endl
+                       << "|       casillas es golpada, se le informara a   |" << endl
+                       << "|       ambos jugadores de esta accion.          |" << endl
+                       << "|                                                |" << endl
+                       << "|   -Fin del juego:                              |" << endl
+                       << "|        1. El juego sera finalizado una vez uno |" << endl
+                       << "|       de los dos jugadores se haya quedado sin |" << endl
+                       << "|       vidas, es decir, sin barcos.             |" << endl
+                       << "|________________________________________________|" << endl
+                       << "|   -Presione una tecla si quiere salir          |" << endl
+                       << "|________________________________________________|" << reset << endl;
+    }
         
-    delay(10);
     system("cls");
 }
 
@@ -213,12 +222,13 @@ bool menu() {
                        << "\t 2. Reglas" << endl
                        << "\t 3. APB" << endl 
                        << "\t 4. Cerrar el programa" <<reset << endl;
-        cin >> opcion;
+        opcion = _getch();
+        system("cls");
         if (opcion == 1) return true;
         else if (opcion == 2) reglas();
         else if (opcion == 3) print_APB();
         else if (opcion == 4) return false;
-        else                  cout << "[!] Ingrese una opcion correcta (1, 2, 3 o 4)" << endl;
+        else                  cout << red << "[!] Ingrese una opcion correcta (1, 2, 3 o 4)" << reset << endl;
     }
 }
 

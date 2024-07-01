@@ -456,12 +456,19 @@ void playing(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData) {
         if (!success) break;
         cout << jugador2_vida;
         turno = true;
+        
+         if (jugador.vidas == 0 || jugador2_vida == "0") {
+            // Envia la vida al servidor para notificar que el jugador perdio 
+            string vida = to_string(jugador.vidas);
+            send_message(client_socket, wsaData, vida);
+        }
     }
 	if (jugador.vidas == 0) {
             cout << "Perdiste la partida" << endl;
         } else {
             cout << "Ganaste la partida" << endl;
         }
+    menu();
 }
 
 void start_client(Jugador& jugador) {

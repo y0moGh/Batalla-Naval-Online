@@ -22,6 +22,7 @@ string green = "\033[1;32m";
 string orange = "\033[38;5;208m";
 string yellow = "\033[38;5;226m";
 string f_yellow = "\033[48;5;226m";
+string f_gray = "\033[48;5;7m";
 string barco_imagen = R"(                                                                                         
                                                                                           
                                                                                           
@@ -181,16 +182,17 @@ void print_selection_board(bool vertical, int n, Jugador& jugador) {
         for (int j = 0; j < 9; j++) {
             // Colores en la primera fila y columna
             if ((i == 0 && j != 0) || (j == 0 && i != 0)) {
-                cout << blue << jugador.board[i][j] << reset << " | ";
+                cout << blue << " " << jugador.board[i][j] << reset << " |";
             }
             // Imprimir el barco que esta seleccionando el jugador
             else if (a == i && b == j && cont > 0) {
-                cout << f_yellow << " " << reset << " | ";
+                cout << f_yellow << "   " << reset << "|";
                 if (!vertical) b++;
                 else a++;
                 cont--;
             } else {
-                cout << jugador.board[i][j] << " | ";
+                if (jugador.board[i][j] == "B") cout << f_gray << "   " << reset << "|";
+                else                            cout << "   |";
             }
         }
         cout << endl;

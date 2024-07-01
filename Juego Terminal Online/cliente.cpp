@@ -10,13 +10,10 @@
 // Define el puerto en el que el cliente se conectara y el tamanio del buffer de recepcion
 #define PORT 1234
 #define BUFFER_SIZE 1024
-
 using namespace std;
-
 bool turno = false;
 bool first = false;
 string valido="";
-
 // Colores
 string red = "\033[1;31m";
 string blue = "\033[1;34m";
@@ -67,21 +64,92 @@ string barco_imagen = R"(
                                           .:::----====++**##%%@@@@@@@@%+.                 
                                                                  .:::.                                                                                                            
 )";
+string moriste = R"(                                                                                          
+             .:::.                                                     ::----:            
+          .--::::---.                                                :--:::::--           
+         :--::...::---                                             .---:....:-=.          
+        .=--:.....::--=.                                          .=--::....:-:::..       
+     ..:---::::....::--=           ..::-------------::..          ==--:::::::...:::::.    
+  .--::::...:::::::::--=:     .:---------------------------:.    .==--:::::.........::-   
+ .--::.........::::::---= .:------:::::::::::::::::::::--------: :=---::::....  ...::--:  
+ .=-::....   ....:::----------::::......................::::----------:::.........::--=:  
+  :=--::.........::-------::::.......             .........::::------:::........::--==-   
+    -==---------::------::::.....                       ......::::-----::::::::--====.    
+      .-========------::::....                             .....::::----::---===+=:.      
+          .:::::----::::....                                 ....:::::---:---::.          
+               :---::::....                                   ....::::----:               
+              :---:::::....                                    ....::::----:              
+              ----:::::....                                     ...::::-----:             
+             .----::::.....                                     ....:::------             
+             :----:::.......                                   ......:::-----             
+             :---::::.......                                   .......::-----             
+             .---:::.............:::..              .-====-:..........::---=-             
+              ---:::...... :=*%@@@@@@@%*:        .+%@@@@@@@@@%*- .....:::--=:             
+              :--:::.... =%@@@@@@@@@@@@@@-      .#@@@@@@@@@@@@@@%-....:::---              
+               --::::...#@@@@@%%%%%%%%%@@#      -@@@%%%%%%%%%%@@@@-.:::::-=.              
+               .-::::::-@@@%%%%%%%%%%%%%@#      -@%%%%%%%%%%%%%%@@%.:::::--               
+                :-:::::=@%%%%%%######%%%@+.......%%%%########%%%%%@.:::---                
+                 ---::::%%%%%#########%%%........=%%%###########%%*:::---.                
+                  --:::.=%###****####%%#:.........-#%##***+++***##::::--.                 
+                  --::::.-****+****##+-...      ....-+***++++++*+:::::--                  
+                  --::.....--====--:.....  .-=:   .....:-======:.:::::-=                  
+                  :--::.......::::::.....:#@@@@%= ....:::::::::::::::--=                  
+                   -=--:::::::::::::....:%%%%#%@@=...::::::::::::::--==.                  
+                  .-====--------:::::::::-==-:-==:::::::::-------====-                    
+              ..:---------=======--:::::::::::::::::::::---===----:::--:.                 
+        .::-==-----------===+=-===--::::::::::::::::::-------==---:::::---====--:.        
+     .:--::::-----------====:  -===---::::::::::::::-------::==---:::::::::::::::---:     
+    :-::..:::::::::::--===:    :====-----------------===---.  -=---:::::::::.......::-:   
+   -::.....::::::::::-===       ========--=======--=====--:    .---:::...::::........::-  
+  :-::....::::::...::-==-       -----:.:-:..:-:.:--::--:--:      =-::.......::::.....::-: 
+  .=-:::::::::.....:--==:       :=---:..:....:...::::-----       :--::....  ...::::::--=  
+   .==-----::......:--==.         ..::::::..:-::::-:-::.          --:::....   ..:-=---:   
+     .:-==-:......::--=-                                          :--::........:-:        
+          :-:....::--=-                                            :--:::....::--         
+           -::::::--=:                                              .---:::::---.         
+           .-------:                                                  .:---==-:           
+             .....                                                                        
+)";
+
+string ganaste = R"(
+                              %%##########################%%                              
+                              @=                          =@                              
+                         #####@=            :-            -@###%#                         
+                         @+  .@=           :@@+           -@:  +%                         
+                         #%   @+         .-@+-@+..        =@.  %*                         
+                         .@=  #%     -%@#**-  :**#@@#     *%  =@.                         
+                          =@+ -@:     :*#-      :#%-     .@= =@:                          
+                           :%#:##       -@:     @*       *%:*%.                           
+                             =%@@+      =%:=##+-*%      -@%#-                             
+                               :+@+     #@*=. :+%@.    =@=.                               
+                                 :@*.                 +%:                                 
+                                   *@=.             =%+                                   
+                                    .+@#=.      .-*%+.                                    
+                                       :+*@=  -%*=:                                       
+                                          @%  *%                                          
+                                          @%  *%                                          
+                                          @%  *%                                          
+                                          @%  *%                                          
+                                     #%###@%%%%@%%%%#                                     
+                                     @#            *%                                     
+                                .++++@%++++++++++++%@++++                                 
+                                :@*::::::::::::::::::::=@.                                
+                                :@+                    -@.                                
+                                :@+                    -@.                                
+                       +*##*##*##@%**#**#*##*##*##*##*#%@##*##*##**                       
+
+)";
 
 // Variables globales
 vector<string> letras = {"A", "B", "C", "D", "E", "F", "G", "H", "I"};
 vector<int> boats_size = {2, 3, 3, 4, 5}; //Tamanio de los barcos en numeros
-
 string jugador2_vida = "17";
-string jugador2_user = "";
-
 struct Jugador {
     int vidas = 17;
     vector<int> position = {4, 4};
     vector<vector<string>> board = vector<vector<string>>(9, vector<string>(9, " "));
     vector<vector<string>> shots_board = vector<vector<string>>(9, vector<string>(9, " "));
 };
-
 void delay(int secs) {
   for(int i = (time(NULL) + secs); time(NULL) != i; time(NULL));
 }
@@ -249,17 +317,18 @@ void print_board(vector<vector<string>> board, string color){
         for (int j = 0; j < 9; j++){
             // Colores en la primera fila y columna
             if ((i == 0 && j != 0) || (j == 0 && i != 0)) {
-                cout << color << board[i][j] << reset << " | ";
+                cout << color << " " << board[i][j] << reset << " |";
             }
-            else if(board[i][j] == "B") cout << f_yellow << " " << reset << " | ";
-            else if(board[i][j] == "X") cout << orange << board[i][j] << reset << " | ";
-            else                        cout << board[i][j] << " | ";
+            else if(board[i][j] == "B") cout << f_yellow << "   " << reset << "|";
+            else if(board[i][j] == "X") cout << orange << " " << board[i][j] << reset << " |";
+            else                        cout << " " << board[i][j] << " |";
 
         }
         cout << endl;
         cout << "-----------------------------------" << endl;
     }
 }
+
 void selection_stage(Jugador& jugador) {
     bool vertical = false;
     bool selecting;
@@ -289,8 +358,8 @@ void print_shots_board(Jugador& jugador){
             else if(jugador.shots_board[i][j] == "X") cout << orange << jugador.shots_board[i][j] << reset << " | ";
             // Imprimir el barco que esta seleccionando el jugador
             else if(jugador.position[0] == i && jugador.position[1] == j){
-                if (jugador.shots_board[i][j] == "X") cout << f_yellow << orange << jugador.shots_board[i][j] << reset << " | ";
-                else                                  cout << f_yellow << "." << reset << " | ";
+                if (jugador.shots_board[i][j] == "X") cout << red << jugador.shots_board[i][j] << reset << " | ";
+                else                                  cout << red << "." << reset << " | ";
             }
             else {
                 cout << jugador.shots_board[i][j] << " | ";
@@ -325,11 +394,11 @@ string shoot_boats(Jugador& jugador){
     string shot;
     while(shooting){
       system("cls");
-      cout << endl << "[...] Jugando contra: " << jugador2_user << endl << endl;
+      cout << endl << "[...] Jugando" << endl << endl;
         cout << "[+] Tu vida: " << jugador.vidas << endl;
         print_board(jugador.board, blue);
         cout << endl << endl << endl << endl;
-        cout << "[+] Vida de " << jugador2_user << ": " << jugador2_vida << endl;
+        cout << "[+] Vida del otro jugador: " << jugador2_vida << endl;
         print_shots_board(jugador);
         char key = _getch();
         shooting = move_shot(jugador, key, shot);
@@ -385,17 +454,6 @@ bool receive_life(SOCKET& client_socket, WSADATA& wsaData, string& jugador2_vida
     return true;
 }
 
-// Función para obtener el mensaje después de "user1\n"
-string get_user(const string& received, string prefix) {
-    size_t pos = received.find(prefix);
-
-    if (pos != string::npos) {
-        return received.substr(pos + prefix.length());
-    } else {
-        return ""; // Retornar cadena vacía si no se encuentra al usuario
-    }
-}
-
 // Funcion para recibir un mensaje del servidor y asignar los valores al vector player2_shot
 bool receive_msg(SOCKET& client_socket, WSADATA& wsaData) {
     // Prepara un buffer para recibir la respuesta del servidor
@@ -410,19 +468,11 @@ bool receive_msg(SOCKET& client_socket, WSADATA& wsaData) {
     // Convierte el buffer a string
     string received(buffer);
     
-    // Para first y para second recibimos el usuario del otro jugador
     if(received == "first\n") {
     	turno = true;
         first = true;
 	}
     else if(received == "valido") valido = received;
-    // El usuario del primer turno va a recibir user2 mientras que el del segundo turno, user1
-    else if(received.find("user1\n") != string::npos){
-    	jugador2_user = get_user(received, "user1\n");
-	}
-	else if(received.find("user2\n") != string::npos){
-		jugador2_user = get_user(received, "user2\n");
-	}
 }
 
 void loggin(SOCKET& client_socket, WSADATA& wsaData) {
@@ -481,22 +531,27 @@ void playing(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData) {
         cout << jugador2_vida;
         turno = true;
         
-                 if (jugador.vidas == 0 || jugador2_vida == "0") {
+         if (jugador.vidas == 0 || jugador2_vida == "0") {
+            // Envia la vida al servidor para notificar que el jugador perdio 
             string vida = to_string(jugador.vidas);
-            success = send_message(client_socket, wsaData, vida);
-            if (!success) break;
-            break; // Salir del bucle cuando el juego termina
+            send_message(client_socket, wsaData, vida);
         }
-		 success = receive_life(client_socket, wsaData, jugador2_vida);     
     }
-
-    // Enviar la vida final del jugador
-    string vida = to_string(jugador.vidas);
-    success = send_message(client_socket, wsaData, vida);
+	   string vida = to_string(jugador.vidas);
+            send_message(client_socket, wsaData, vida);	
+	
+char option;
+    system("cls");
 	if (jugador.vidas == 0) {
             cout << "Perdiste la partida" << endl;
+            cout<<moriste<<endl;
+           	option = _getch();
+			system("cls"); 
         } else {
             cout << "Ganaste la partida" << endl;
+            cout<<ganaste;
+            	option = _getch();
+				system("cls");
         }
     menu();
 }
@@ -535,7 +590,6 @@ void start_client(Jugador& jugador) {
         cout << "[...] Esperando al otro jugador" << endl;
         success = receive_msg(client_socket, wsaData);
     }
-
     // Main loop - Playing
     playing(jugador, client_socket, wsaData);
     // Cierra el socket del cliente y limpia la biblioteca Winsock

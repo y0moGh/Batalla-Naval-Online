@@ -138,7 +138,22 @@ public:
                         }
                     }
                 }
-            }else{
+            } else if (message == "podio") {
+                string podio_result;
+                string sql = "SELECT name, points FROM users ORDER BY points DESC";
+                sqlite3_stmt *stmt;
+                if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+                    while (sqlite3_step(stmt) == SQLITE_ROW) {
+                        string name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+                        int points = sqlite3_column_int(stmt, 1);
+                        podio_result += name + ": " + to_string(points) + "\n";
+                    }
+                    sqlite3_finalize(stmt);
+                } else {
+                    cerr << "SQL error: " << sqlite3_errmsg(db) << endl;
+                }
+                send(client_socket, ("podio:" + podio_result).c_str(), podio_result.length() + 6, 0);
+            } else {
                 message = message.substr(0, message.find('\n')); // Elimina caracteres de nueva línea
 
                 cout << "\n[*] Message received from client " << ntohs(client_address.sin_port) << ": " << message << endl;

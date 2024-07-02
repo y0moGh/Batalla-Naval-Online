@@ -235,7 +235,7 @@ void print_APB() {
                     << "|        -s: moverse hacia abajo          |" << endl
                     << "|        -d: moverse hacia la derecha     |" << endl
                     << "|        -e: seleccionar la casilla       |" << endl
-                    << "|        -r: rotar el barco 90?           |" << endl
+                    << "|        -r: rotar el barco 90°           |" << endl
                     << "|_________________________________________|" << endl
                     << "|   -Presione una tecla si quiere salir   |" << endl
                     << "|_________________________________________|" << reset << endl;

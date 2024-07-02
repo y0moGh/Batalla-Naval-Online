@@ -17,6 +17,7 @@ using namespace std;
 bool turno = false;
 bool first = false;
 string valido="";
+string podio="";
 
 // Colores
 string red = "\033[1;31m";
@@ -312,7 +313,74 @@ void reglas() {
 	option = _getch();
 }
 
-bool menu(SOCKET& client_socket, WSADATA& wsaData) {
+// Funcion para obtener el mensaje despu?s de "user1\n"
+string get_user(const string& received, string prefix) {
+    size_t pos = received.find(prefix);
+
+    if (pos != string::npos) {
+        return received.substr(pos + prefix.length());
+    } else {
+        return ""; // Retornar cadena vacia si no se encuentra al usuario
+    }
+}
+
+// Funcion para recibir un mensaje del servidor y asignar los valores al vector player2_shot
+bool receive_msg(SOCKET& client_socket, WSADATA& wsaData) {
+    // Prepara un buffer para recibir la respuesta del servidor
+    char buffer[BUFFER_SIZE];
+    int bytes_received = recv(client_socket, buffer, BUFFER_SIZE, 0); // Recibe datos del servidor
+    if (bytes_received <= 0) {
+        cerr << "Recv failed or connection closed: " << WSAGetLastError() << endl;
+        return false;
+    }
+    // Asegurate de que el buffer esta terminado en null para usarlo como string
+    buffer[bytes_received] = '\0';
+    // Convierte el buffer a string
+    string received(buffer);
+    
+    // Para first y para second recibimos el usuario del otro jugador
+    if(received == "first\n") {
+        turno = true;
+        first = true;
+    }
+    else if(received == "valido") valido = received;
+    // El usuario del primer turno va a recibir user2 mientras que el del segundo turno, user1
+    else if(received.find("user1\n") != string::npos){
+        jugador2_user = get_user(received, "user1\n");
+    }
+    else if(received.find("user2\n") != string::npos){
+        jugador2_user = get_user(received, "user2\n");
+    }
+    else if(received.find("podio:") != string::npos){
+        podio = received.substr(6); // Extrae el contenido después de "podio:"
+    }    
+}
+
+bool send_message(SOCKET& client_socket, WSADATA& wsaData, string message){
+      int send_result = send(client_socket, message.c_str(), message.size(), 0);
+      if (send_result == SOCKET_ERROR) {
+          cerr << "Send failed: " << WSAGetLastError() << endl;
+          return false;
+      }
+      return true;
+}
+
+void mostrar_podio(SOCKET& client_socket, WSADATA& wsaData, sockaddr_in& server_addr){
+	bool success;
+	connect_server(client_socket, server_addr); // Nos conectamos al servidor
+	
+	success = send_message(client_socket, wsaData, "podio");
+	success = receive_msg(client_socket, wsaData);
+	cout << podio;
+	
+	char option = _getch();
+	
+	close_socket(client_socket, wsaData); // Cerramos el soket
+	podio="";
+	start_client(); // Se vuelve a crear un socket y se vuelve al menu
+}
+
+bool menu(SOCKET& client_socket, WSADATA& wsaData, sockaddr_in& server_addr) {
     while (true) {
         char opcion;
 	//imprimir barco en ascii
@@ -322,14 +390,16 @@ bool menu(SOCKET& client_socket, WSADATA& wsaData) {
                        << "\t 1. Jugar" << endl
                        << "\t 2. Reglas" << endl
                        << "\t 3. APB" << endl 
-                       << "\t 4. Cerrar el programa" <<reset << endl;
+                       << "\t 4. Cerrar el programa" << endl
+                       << "\t 5. Mostrar podio" << reset << endl;
         opcion = _getch();
         system("cls");
         if (opcion == '1') return true;
         else if (opcion == '2') reglas();
         else if (opcion == '3') print_APB();
         else if (opcion == '4') return false;
-        else                  cout << red << "[!] Ingrese una opcion correcta (1, 2, 3 o 4)" << reset << endl;
+        else if (opcion == '5') mostrar_podio(client_socket, wsaData, server_addr);
+        else                  cout << red << "[!] Ingrese una opcion correcta (1, 2, 3, 4 o 5)" << reset << endl;
     }
 }
 
@@ -371,10 +441,10 @@ void print_board(vector<vector<string>> board, string color){
     }
 }
 
-void selection_stage(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData) {
+void selection_stage(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData, sockaddr_in& server_addr) {
     bool vertical = false;
     bool selecting;
-    if (menu(client_socket, wsaData)) {
+    if (menu(client_socket, wsaData, server_addr)) {
         for (int i = 0; i < boats_size.size(); i++) {
             selecting = true;
             while (selecting) {
@@ -449,15 +519,6 @@ string shoot_boats(Jugador& jugador){
     return shot;
 }
 
-bool send_message(SOCKET& client_socket, WSADATA& wsaData, string message){
-      int send_result = send(client_socket, message.c_str(), message.size(), 0);
-      if (send_result == SOCKET_ERROR) {
-          cerr << "Send failed: " << WSAGetLastError() << endl;
-          return false;
-      }
-      return true;
-}
-
 // Funcion para recibir un mensaje del servidor y asignar los valores al vector player2_shot
 bool receive_shot(SOCKET& client_socket, WSADATA& wsaData, vector<string>& player2_shot) {
     // Prepara un bufer para recibir la respuesta del servidor
@@ -495,46 +556,6 @@ bool receive_life(SOCKET& client_socket, WSADATA& wsaData, string& jugador2_vida
     jugador2_vida = vida;
     
     return true;
-}
-
-// Funci?n para obtener el mensaje despu?s de "user1\n"
-string get_user(const string& received, string prefix) {
-    size_t pos = received.find(prefix);
-
-    if (pos != string::npos) {
-        return received.substr(pos + prefix.length());
-    } else {
-        return ""; // Retornar cadena vac?a si no se encuentra al usuario
-    }
-}
-
-// Funcion para recibir un mensaje del servidor y asignar los valores al vector player2_shot
-bool receive_msg(SOCKET& client_socket, WSADATA& wsaData) {
-    // Prepara un buffer para recibir la respuesta del servidor
-    char buffer[BUFFER_SIZE];
-    int bytes_received = recv(client_socket, buffer, BUFFER_SIZE, 0); // Recibe datos del servidor
-    if (bytes_received <= 0) {
-        cerr << "Recv failed or connection closed: " << WSAGetLastError() << endl;
-        return false;
-    }
-    // Asegurate de que el buffer esta terminado en null para usarlo como string
-    buffer[bytes_received] = '\0';
-    // Convierte el buffer a string
-    string received(buffer);
-    
-    // Para first y para second recibimos el usuario del otro jugador
-    if(received == "first\n") {
-    	turno = true;
-        first = true;
-	}
-    else if(received == "valido") valido = received;
-    // El usuario del primer turno va a recibir user2 mientras que el del segundo turno, user1
-    else if(received.find("user1\n") != string::npos){
-    	jugador2_user = get_user(received, "user1\n");
-	}
-	else if(received.find("user2\n") != string::npos){
-		jugador2_user = get_user(received, "user2\n");
-	}
 }
 
 void loggin(SOCKET& client_socket, WSADATA& wsaData) {
@@ -644,7 +665,7 @@ void start_program(WSADATA& wsaData, sockaddr_in& server_addr){
     // Carga el tablero
     load_board(jugador); // Cargo el tablero con las filas y columnas principales
     
-	selection_stage(jugador, client_socket, wsaData); // LLamamos a ejecutar a la primera parte del juego
+	selection_stage(jugador, client_socket, wsaData, server_addr); // LLamamos a ejecutar a la primera parte del juego
     
     connect_server(client_socket, server_addr); // Llamamos a una función para conectarse al servidor
 
@@ -681,4 +702,3 @@ int main() {
     // Inicia el cliente con el jugador
     start_client(); 
 }
-

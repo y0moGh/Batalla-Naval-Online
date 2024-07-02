@@ -153,11 +153,11 @@ string ganaste = R"(
 vector<string> letras = {"A", "B", "C", "D", "E", "F", "G", "H", "I"};
 vector<int> boats_size = {2, 3, 3, 4, 5}; //Tamanio de los barcos en numeros
 
-string jugador2_vida = "1";
+string jugador2_vida = "17";
 string jugador2_user = "";
 
 struct Jugador {
-    int vidas = 1;
+    int vidas = 17;
     vector<int> position = {4, 4};
     vector<vector<string>> board = vector<vector<string>>(9, vector<string>(9, " "));
     vector<vector<string>> shots_board = vector<vector<string>>(9, vector<string>(9, " "));
@@ -591,7 +591,7 @@ void reset_variables(Jugador& jugador){
 	valido="";
 	
 	// Reseteamos variables del jugador2
-	jugador2_vida = "1";
+	jugador2_vida = "17";
  	jugador2_user = "";
 }
 

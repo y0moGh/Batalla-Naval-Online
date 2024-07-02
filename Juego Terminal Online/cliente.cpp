@@ -5,15 +5,19 @@
 #include <vector>
 #include <conio.h>
 #include <ctime>
+
 // Enlaza la biblioteca Winsock 2.2 para permitir el uso de funciones de red
 #pragma comment(lib, "ws2_32.lib")
 // Define el puerto en el que el cliente se conectara y el tamanio del buffer de recepcion
 #define PORT 1234
 #define BUFFER_SIZE 1024
+
 using namespace std;
+
 bool turno = false;
 bool first = false;
 string valido="";
+
 // Colores
 string red = "\033[1;31m";
 string blue = "\033[1;34m";
@@ -147,15 +151,43 @@ string ganaste = R"(
 vector<string> letras = {"A", "B", "C", "D", "E", "F", "G", "H", "I"};
 vector<int> boats_size = {2, 3, 3, 4, 5}; //Tamanio de los barcos en numeros
 
-string jugador2_vida = "17";
+string jugador2_vida = "1";
 string jugador2_user = "";
 
 struct Jugador {
-    int vidas = 17;
+    int vidas = 1;
     vector<int> position = {4, 4};
     vector<vector<string>> board = vector<vector<string>>(9, vector<string>(9, " "));
     vector<vector<string>> shots_board = vector<vector<string>>(9, vector<string>(9, " "));
 };
+
+void start_program(WSADATA& wsaData, sockaddr_in& server_addr); // Declara de manera global la funcion base del programa
+void start_client();
+
+void connect_server(SOCKET& client_socket, sockaddr_in& server_addr) {
+    // Conecta el socket del cliente con el servidor
+    if (connect(client_socket, (sockaddr*)&server_addr, sizeof(server_addr)) == SOCKET_ERROR) {
+        std::cerr << "Connect failed: " << WSAGetLastError() << std::endl;
+        closesocket(client_socket);
+        WSACleanup();
+        return;
+    }
+}
+
+// Funcion que crea y devuelve un socket
+SOCKET create_socket() {
+    SOCKET new_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (new_socket == INVALID_SOCKET) {
+        cerr << "Error creating socket: " << WSAGetLastError() << endl;
+    }
+    return new_socket;
+}
+
+void close_socket(SOCKET& client_socket, WSADATA& wsaData){
+	closesocket(client_socket);
+    WSACleanup();
+    std::cout << "[INFO] Conexión cerrada con el servidor." << std::endl;
+}
 
 void delay(int secs) {
   for(int i = (time(NULL) + secs); time(NULL) != i; time(NULL));
@@ -235,7 +267,7 @@ void print_APB() {
                     << "|        -s: moverse hacia abajo          |" << endl
                     << "|        -d: moverse hacia la derecha     |" << endl
                     << "|        -e: seleccionar la casilla       |" << endl
-                    << "|        -r: rotar el barco 90°           |" << endl
+                    << "|        -r: rotar el barco 90?           |" << endl
                     << "|_________________________________________|" << endl
                     << "|   -Presione una tecla si quiere salir   |" << endl
                     << "|_________________________________________|" << reset << endl;
@@ -280,7 +312,7 @@ void reglas() {
 	option = _getch();
 }
 
-bool menu() {
+bool menu(SOCKET& client_socket, WSADATA& wsaData) {
     while (true) {
         char opcion;
 	//imprimir barco en ascii
@@ -339,10 +371,10 @@ void print_board(vector<vector<string>> board, string color){
     }
 }
 
-void selection_stage(Jugador& jugador) {
+void selection_stage(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData) {
     bool vertical = false;
     bool selecting;
-    if (menu()) {
+    if (menu(client_socket, wsaData)) {
         for (int i = 0; i < boats_size.size(); i++) {
             selecting = true;
             while (selecting) {
@@ -519,8 +551,19 @@ void loggin(SOCKET& client_socket, WSADATA& wsaData) {
     }
 }   
 
+void reset_variables(Jugador& jugador){
+    // Reseteamos variables para manejar los turnos
+    turno = false;
+	first = false;
+	valido="";
+	
+	// Reseteamos variables del jugador2
+	jugador2_vida = "17";
+ 	jugador2_user = "";
+}
+
 // Funcion principal del juego
-void playing(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData) {
+void playing(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData, sockaddr_in& server_addr) {
     bool success;
     vector<string> player2_shot = {"0", "0"};
     // In game
@@ -586,63 +629,56 @@ void playing(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData) {
         option = _getch();
         system("cls");
     }
-    menu();
+    close_socket(client_socket, wsaData); // CDesconectamos el socket del servidor
+    reset_variables(jugador); // Reseteamos el valor de las variables globales
+    start_client();
 }
 
-void start_client(Jugador& jugador) {
+void start_program(WSADATA& wsaData, sockaddr_in& server_addr){
+	// Inicializamos el struct del jugador
+    Jugador jugador;
+    
+    // Crea un socket para el cliente
+    SOCKET client_socket = create_socket();
+    
+    // Carga el tablero
+    load_board(jugador); // Cargo el tablero con las filas y columnas principales
+    
+	selection_stage(jugador, client_socket, wsaData); // LLamamos a ejecutar a la primera parte del juego
+    
+    connect_server(client_socket, server_addr); // Llamamos a una función para conectarse al servidor
+
+    loggin(client_socket, wsaData); // Nos logueamos/creamos un nuevo usuario
+    bool success = receive_msg(client_socket, wsaData);
+    if(first) {
+        cout << "[...] Esperando al otro jugador" << endl;
+        success = receive_msg(client_socket, wsaData);
+    }
+    
+    // Main loop - Playing
+    playing(jugador, client_socket, wsaData, server_addr);
+}
+
+void start_client() {
     WSADATA wsaData;
     // Inicializa la biblioteca Winsock
     int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (result != 0) {
-        cerr << "WSAStartup failed: " << result << endl;
-        return;
-    }
-    // Crea un socket para el cliente
-    SOCKET client_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (client_socket == INVALID_SOCKET) {
-        cerr << "Error creating socket: " << WSAGetLastError() << endl;
-        WSACleanup();
-        return;
-    }
-    // Configura la direccion del servidor al que se conectara el cliente
-    sockaddr_in server_addr;
-    server_addr.sin_family = AF_INET; // Familia de direcciones IPv4
-    server_addr.sin_addr.s_addr = inet_addr("34.176.129.197"); // Direccion IP del servidor (local)
-    server_addr.sin_port = htons(PORT); // Puerto del servidor
-    // Conecta el socket del cliente con el servidor
-    if (connect(client_socket, (sockaddr*)&server_addr, sizeof(server_addr)) == SOCKET_ERROR) {
-        cerr << "Connect failed: " << WSAGetLastError() << endl;
-        closesocket(client_socket);
-        WSACleanup();
+        std::cerr << "WSAStartup failed: " << result << std::endl;
         return;
     }
     
-
-	loggin(client_socket, wsaData);
-	bool success = receive_msg(client_socket, wsaData);
-	if(first) {
-	    cout << "[...] Esperando al otro jugador" << endl;
-	    success = receive_msg(client_socket, wsaData);
-	}
-	
-	// Main loop - Playing
-	playing(jugador, client_socket, wsaData);
-
-    // Cierra el socket del cliente y limpia la biblioteca Winsock
-    closesocket(client_socket);
-    WSACleanup();
-    cout << "[INFO] Conexion cerrada con el servidor." << endl;
+    // Configura la dirección del servidor al que se conectará el cliente
+    sockaddr_in server_addr;
+    server_addr.sin_family = AF_INET; // Familia de direcciones IPv4
+    server_addr.sin_addr.s_addr = inet_addr("34.176.129.197"); // Dirección IP del servidor (local)
+    server_addr.sin_port = htons(PORT); // Puerto del servidor
+    
+	start_program(wsaData, server_addr);
 }
 
 int main() {
-    // Inicializamos el struct del jugador
-    Jugador jugador;
-    
-    // Carga el tablero
-    load_board(jugador); // Cargo el tablero con las filas y columnas principales
-    selection_stage(jugador);
-    
     // Inicia el cliente con el jugador
-    start_client(jugador); 
+    start_client(); 
 }
 

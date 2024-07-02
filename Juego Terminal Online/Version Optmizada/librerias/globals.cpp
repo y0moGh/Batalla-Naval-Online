@@ -1,4 +1,4 @@
-#include "globals.h"
+#include "..\encabezados\globals.h"
 
 // Definiciones de variables globales de turno
 bool turno = false;

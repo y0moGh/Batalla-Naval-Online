@@ -6,7 +6,7 @@
 #include <conio.h>
 #include <ctime>
 #include <sstream>
-#include "globals.h"
+#include ".\encabezados\globals.h"
 
 // Enlaza la biblioteca Winsock 2.2 para permitir el uso de funciones de red
 #pragma comment(lib, "ws2_32.lib")

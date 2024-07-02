@@ -8,9 +8,9 @@ string podio = "";
 
 // Definiciones de variables globales de juego
 vector<string> letras = {"A", "B", "C", "D", "E", "F", "G", "H", "I"};
-vector<int> boats_size = {2, 3, 3, 4, 5}; // Tamaño de los barcos en números
+vector<int> boats_size = {2, 3, 3, 4, 5}; // TamaÃ±o de los barcos en nÃºmeros
 
-string jugador2_vida = "17";
+string jugador2_vida = "3";
 string jugador2_user = "";
 
 // Definiciones de colores

@@ -5,6 +5,7 @@
 #include <vector>
 #include <conio.h>
 #include <ctime>
+#include <sstream>
 
 // Enlaza la biblioteca Winsock 2.2 para permitir el uso de funciones de red
 #pragma comment(lib, "ws2_32.lib")
@@ -179,7 +180,7 @@ void connect_server(SOCKET& client_socket, sockaddr_in& server_addr) {
 SOCKET create_socket() {
     SOCKET new_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (new_socket == INVALID_SOCKET) {
-        cerr << "Error creating socket: " << WSAGetLastError() << endl;
+        cerr << "Error creando el socket: " << WSAGetLastError() << endl;
     }
     return new_socket;
 }
@@ -187,7 +188,6 @@ SOCKET create_socket() {
 void close_socket(SOCKET& client_socket, WSADATA& wsaData){
 	closesocket(client_socket);
     WSACleanup();
-    std::cout << "[INFO] Conexión cerrada con el servidor." << std::endl;
 }
 
 void delay(int secs) {
@@ -365,13 +365,25 @@ bool send_message(SOCKET& client_socket, WSADATA& wsaData, string message){
       return true;
 }
 
+void print_podio(){
+    istringstream stream(podio);
+    string line;
+    
+    // Procesar cada línea
+    while (getline(stream, line)) {
+        // Imprimir la línea con un tabulador al inicio
+        cout << '\t' << line << endl;
+    }
+}
+
 void mostrar_podio(SOCKET& client_socket, WSADATA& wsaData, sockaddr_in& server_addr){
 	bool success;
 	connect_server(client_socket, server_addr); // Nos conectamos al servidor
 	
 	success = send_message(client_socket, wsaData, "podio");
 	success = receive_msg(client_socket, wsaData);
-	cout << podio;
+	cout << "\t" << orange << "-- Podio --" << reset << endl;
+	print_podio();
 	
 	char option = _getch();
 	
@@ -579,7 +591,7 @@ void reset_variables(Jugador& jugador){
 	valido="";
 	
 	// Reseteamos variables del jugador2
-	jugador2_vida = "17";
+	jugador2_vida = "1";
  	jugador2_user = "";
 }
 
@@ -640,15 +652,18 @@ void playing(Jugador& jugador, SOCKET& client_socket, WSADATA& wsaData, sockaddr
     char option;
     system("cls");
     if (jugador.vidas == 0) {
-        cout << "Perdiste la partida" << endl;
+        cout << yellow << "Perdiste la partida" << reset << endl;
         cout << moriste << endl;
         option = _getch();
         system("cls"); 
     } else {
-        cout << "Ganaste la partida" << endl;
+    	success = send_message(client_socket, wsaData, "win");
+       
+        cout << yellow << "Ganaste la partida! Se te suman 10 puntos" << reset << endl;
         cout << ganaste;
         option = _getch();
-        system("cls");
+		system("cls");
+        
     }
     close_socket(client_socket, wsaData); // CDesconectamos el socket del servidor
     reset_variables(jugador); // Reseteamos el valor de las variables globales
